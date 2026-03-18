@@ -582,16 +582,19 @@ function formatRelativeTime(timestamp, isChatBubble = false) {
     const hh = String(d.getHours()).padStart(2, '0');
     const mm = String(d.getMinutes()).padStart(2, '0');
     const timeStr = `${hh}:${mm}`;
+    const isDifferentYear = d.getFullYear() !== now.getFullYear();
     
     if (targetDateStart.getTime() === todayStart.getTime()) {
         return timeStr;
     } else if (targetDateStart.getTime() === yesterdayStart.getTime()) {
-        return `昨天 ${timeStr}`;
+        return isChatBubble ? `昨天 ${timeStr}` : `昨天`;
     } else {
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
-        if (isChatBubble) return `${month}/${day} ${timeStr}`;
-        return `${month}/${day}`;
+        const dateStr = isDifferentYear ? `${d.getFullYear()}/${month}/${day}` : `${month}/${day}`;
+        
+        if (isChatBubble) return `${dateStr} ${timeStr}`;
+        return dateStr;
     }
 }
 
@@ -729,7 +732,7 @@ function renderContactList() {
             <div class="contact-item-inner" data-id="${item.id}">
                 <div class="${avatarClass}">${item.avatar}</div>
                 <div class="c-info"><div class="c-name">${titleHtml}</div><div class="c-preview">${item.lastMsg}</div></div>
-                <div class="c-time-area"><div class="c-time">${formatRelativeTime(item.updatedAt) || ''}</div>${unreadHtml}</div>
+                <div class="c-time-area"><div class="c-time">${formatRelativeTime(item.updatedAt, false) || ''}</div>${unreadHtml}</div>
             </div>`;
         c.appendChild(row);
     });
@@ -814,8 +817,13 @@ function renderChat(id) {
     
     let lastMsgTime = 0;
     c.history.forEach(msg => {
-        // 时光回溯算法：如果消息里没存 timestamp，就从 id 里抠出来
-        const msgTime = msg.timestamp || parseInt(msg.id.replace('m', '')) || 0;
+        // 时光回溯算法修复：精准提取m后面的13位数字
+        let ts = msg.timestamp;
+        if (!ts && msg.id) {
+            let match = msg.id.match(/^m(\d{13})/);
+            if (match) ts = parseInt(match[1], 10);
+        }
+        const msgTime = ts || 0;
         
         if (msgTime && (msgTime - lastMsgTime > 5 * 60 * 1000)) { 
             const timeDiv = document.createElement('div');
@@ -1172,7 +1180,7 @@ async function handleSend(triggerAI, isReroll = false) {
 
     // 构建全局花名册与真实时间差计算
     const otherSingles = freshDb.contacts.filter(c => c.type === 'single' && c.id !== targetContactId);
-    const otherNamesInfo = otherSingles.map(c => `- ${c.name} (关系: ${c.relation||'未知'} | 距离上次聊天已过: ${formatRelativeTime(c.updatedAt)})`).join('\n');
+    const otherNamesInfo = otherSingles.map(c => `- ${c.name} (关系: ${c.relation||'未知'} | 距离上次聊天已过: ${formatRelativeTime(c.updatedAt, false)})`).join('\n');
     
     let globalDirectorPrompt = otherNamesInfo ? `\n\n【上帝视角与后台并行世界 (极其重要)】\n当前世界中还存在以下后台角色，且时间是同步流动的：\n${otherNamesInfo}\n\n作为总导演，你**必须**评估这些后台角色当前的状态。请结合TA们的人设职业（打工人/学生/闲人）、性格，以及【距离上次聊天已过的时间】，决定TA们现在是否会**突然主动**给用户发私信或打电话！\n触发动机参考：\n1. 时间驱动：如果过了很久（几小时/几天），正常朋友可能分享日常/发梗图；如果是粘人精/病娇，几分钟没理就会发疯查岗。\n2. 身份作息：打工人上班时间通常潜水，晚上/周末才会活跃找人。\n如果你认为某个/些后台角色此时应该主动找用户，请将动作放在JSON的 'background_interruptions' 数组中。如果大家都安静，就返回空数组 []。` : "";
 
@@ -1412,17 +1420,20 @@ async function checkSummary(id, force = false) {
         let historyStr = "";
         if (contact.type === 'group') {
             historyStr = batchSlice.map(m => {
-                // 时光回溯：如果没timestamp，从id中剥离出毫秒级时间戳
-                let ts = m.timestamp || parseInt(m.id.replace('m', '')) || Date.now();
-                let d = new Date(ts);
+                // 时光回溯算法修复：精准提取m后面的13位数字
+                let ts = m.timestamp;
+                if (!ts && m.id) { let match = m.id.match(/^m(\d{13})/); if (match) ts = parseInt(match[1], 10); }
+                let d = new Date(ts || Date.now());
                 let dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
                 return `[${dateStr}] ${m.type === 'sent' ? 'User' : (m.speakerName||'群员')}: ${m.content}`;
             }).join("\n");
             dynPrompt += `6. **【群聊客观记录】**：记录群成员间的重要互动与修罗场。\n`;
         } else {
             historyStr = batchSlice.map(m => {
-                let ts = m.timestamp || parseInt(m.id.replace('m', '')) || Date.now();
-                let d = new Date(ts);
+                // 时光回溯算法修复：精准提取m后面的13位数字
+                let ts = m.timestamp;
+                if (!ts && m.id) { let match = m.id.match(/^m(\d{13})/); if (match) ts = parseInt(match[1], 10); }
+                let d = new Date(ts || Date.now());
                 let dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
                 return `[${dateStr}] ${m.type === 'sent' ? 'User' : contact.name}: ${m.content}`;
             }).join("\n");
