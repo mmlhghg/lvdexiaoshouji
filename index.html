@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v3.0
+@name 驴的学习小手机 v3.0.1
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v3.0</title>
+<title>驴的学习小手机 v3.0.1</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -542,13 +542,17 @@ function showSysStatus(msg, isTyping = false) {
 function hideSysStatus() { 
     const bar = document.getElementById('sysStatusBar'); bar.classList.remove('show'); 
     if(statusTimer) { clearInterval(statusTimer); statusTimer = null; } 
-    const activeTab = document.querySelector('.tab-item.active');
-    if (activeTab) {
-        if (activeTab.dataset.page === 'page-chat' && currentContactId) {
-            const c = LocalDB.get().contacts.find(x => x.id === currentContactId);
+    
+    // 修复点：直接判断当前显示的页面是不是聊天页面
+    if (document.getElementById('page-chat').classList.contains('active') && currentContactId) {
+        const c = LocalDB.get().contacts.find(x => x.id === currentContactId);
+        if (c) {
             let titleStr = c.name; if (c.type === 'group') titleStr += ` (${c.members.length})`; if (c.mode === 'offline') titleStr += " (线下)";
             document.getElementById('topTitle').innerText = titleStr;
-        } else { document.getElementById('topTitle').innerText = activeTab.dataset.title; }
+        }
+    } else {
+        const activeTab = document.querySelector('.tab-item.active');
+        if (activeTab) document.getElementById('topTitle').innerText = activeTab.dataset.title; 
     }
 }
 
