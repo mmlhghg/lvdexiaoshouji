@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v2.7
+@name 驴的学习小手机 v2.9.6 (记忆上帝视角 & 时间气泡版)
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v2.7</title>
+<title>驴的学习小手机 v2.9.6</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -61,6 +61,7 @@
   
   #page-chat { background: #fff; z-index: 10; }
   .chat-history { flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; min-height: 0; }
+  .chat-time-bubble { text-align: center; font-size: 11px; color: #999; margin: 16px 0 8px; font-weight: 500; clear: both;}
   .message-wrapper { display: flex; flex-direction: column; width: 100%; }
   .message-wrapper.received { align-items: flex-start; }
   .message-wrapper.sent { align-items: flex-end; }
@@ -470,13 +471,13 @@
         </div>
 
         <div style="display:flex; gap:10px; margin-top: 15px;">
-            <div style="flex:1"><span class="setting-label">带入历史回合数</span><input type="number" id="currentRoleHistoryLimit" class="setting-input" placeholder="默认10"></div>
-            <div style="flex:1"><span class="setting-label">记忆提取阈值 <span id="summaryProgressText" style="color:var(--ios-blue); font-weight:bold; font-size:12px;">(0/0)</span></span><input type="number" id="currentRoleSummaryThreshold" class="setting-input" placeholder="默认30"></div>
+            <div style="flex:1"><span class="setting-label">带入历史回合数 <span style="font-size:10px;color:#999;font-weight:normal;">(注：只要换人说话即算1个回合，AI连发多条气泡仅算1回合)</span></span><input type="number" id="currentRoleHistoryLimit" class="setting-input" placeholder="默认10"></div>
+            <div style="flex:1"><span class="setting-label">记忆提取阈值 <span id="summaryProgressText" style="color:var(--ios-blue); font-weight:bold; font-size:12px;">(0/0)</span><br><span style="font-size:10px;color:#999;font-weight:normal;">(注：若想从头重新提取，请手动清空下方记忆框后再点击搬运)</span></span><input type="number" id="currentRoleSummaryThreshold" class="setting-input" placeholder="默认30"></div>
         </div>
         <hr style="margin:10px 0 20px 0;">
         <span class="setting-label">🥕 胡萝卜仓库 (自动记忆节点)</span>
         <div class="memory-container" id="memoryVisualContainer" style="min-height:100px; margin-bottom:10px;"></div>
-        <button class="mini-btn" style="width:100%; margin-bottom:20px;" onclick="manualSummarize()">🫏强行搬运总结一次</button>
+        <button class="mini-btn" style="width:100%; margin-bottom:20px;" onclick="manualSummarize()">🫏强行搬运总结 (每次点击仅处理设定的批次，防止AI脑容量过载)</button>
         <div style="text-align:right;"><button class="mini-btn" onclick="document.getElementById('rawMemoryAreaContainer').style.display = document.getElementById('rawMemoryAreaContainer').style.display=='none'?'block':'none'">手动编辑底层记忆</button></div>
         <div id="rawMemoryAreaContainer" style="display:none; margin-top:10px;">
             <div style="font-size:12px; color:#888; margin-bottom:6px;">(手动修改文字后，保存会自动刷新节点)</div>
@@ -522,7 +523,7 @@ document.body.addEventListener('click', function(e) {
     }
 });
 
-let statusTimer = null; const donkeyMsgs = ["🫏努力奔跑中...", "🫏时间缓慢推进...", "🫏正在窥探世界...", "🫏大家好像有话说...", "🫏让我看看后台发生了什么...", "🫏这次有点慢哦...", "🫏跑累了偷会懒..."];
+let statusTimer = null; const donkeyMsgs = ["🫏努力奔跑中...", "🫏累了停下来喝口水...", "🫏这次有点慢哦...", "🫏再等一下下...", "🫏终点就在眼前...", "🫏要早睡早起哦...", "🫏想好今天吃什么了吗...", "🫏天冷要多穿衣服不要感冒哦..."];
 function showSysStatus(msg, isTyping = false) {
     const bar = document.getElementById('sysStatusBar'); bar.classList.add('show');
     if(!isTyping) {
@@ -563,6 +564,31 @@ function playTTS(text, langHint = "") {
     window.speechSynthesis.speak(utterance); 
 }
 
+function formatRelativeTime(timestamp, isChatBubble = false) {
+    if (!timestamp) return '';
+    const d = new Date(timestamp);
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterdayStart = new Date(todayStart);
+    yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+    const targetDateStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    const timeStr = `${hh}:${mm}`;
+    
+    if (targetDateStart.getTime() === todayStart.getTime()) {
+        return timeStr;
+    } else if (targetDateStart.getTime() === yesterdayStart.getTime()) {
+        return `昨天 ${timeStr}`;
+    } else {
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        if (isChatBubble) return `${month}/${day} ${timeStr}`;
+        return `${month}/${day}`;
+    }
+}
+
 const DB_KEY = 'ai_tutor_db_v30';
 const defaultApiProfile = { name: "默认配置", baseUrl: "https://api.openai.com/v1", key: "", model: "gpt-3.5-turbo", temp: 0.7 };
 const defaultWorldbookProfile = { name: "默认世界书", prompt: "" };
@@ -601,13 +627,12 @@ const LocalDB = {
     addMessage(id, type, content, analysis = null, rawObject = null, speakerName = null) {
         const d = this.get(); const c = d.contacts.find(x => x.id === id);
         if(c) {
-            c.history.push({ id: 'm'+Date.now()+Math.random(), type, content, analysis, rawObj: rawObject, speakerName: speakerName });
+            c.history.push({ id: 'm'+Date.now()+Math.random(), type, content, analysis, rawObj: rawObject, speakerName: speakerName, timestamp: Date.now() });
             c.msgCount = (c.msgCount || 0) + 1;
             c.lastMsg = content.replace(/\[(?:图片|画像|Image|Picture|写真):.*?\]/i, '[图片]').replace(/\[(?:语音|音声|Voice|Audio|录音):.*?\]/i, '[语音]'); 
             if(content.includes('[视频通话记录]')) c.lastMsg = '[视频通话结束]';
             if(rawObject && rawObject.isSystemEvent) c.lastMsg = '[系统操作]'; 
             if(c.type === 'group' && type === 'received' && speakerName) c.lastMsg = `${speakerName}: ${c.lastMsg}`;
-            c.time = new Date().getHours() + ':' + String(new Date().getMinutes()).padStart(2,'0');
             c.updatedAt = Date.now();
             if (id !== currentContactId) { c.unreadCount = (c.unreadCount || 0) + 1; }
             this.save(d);
@@ -688,7 +713,7 @@ function renderContactList() {
             <div class="contact-item-inner" data-id="${item.id}">
                 <div class="${avatarClass}">${item.avatar}</div>
                 <div class="c-info"><div class="c-name">${titleHtml}</div><div class="c-preview">${item.lastMsg}</div></div>
-                <div class="c-time-area"><div class="c-time">${item.time}</div>${unreadHtml}</div>
+                <div class="c-time-area"><div class="c-time">${formatRelativeTime(item.updatedAt) || ''}</div>${unreadHtml}</div>
             </div>`;
         c.appendChild(row);
     });
@@ -766,7 +791,18 @@ function triggerSystemEvent() {
 
 function renderChat(id) {
     const c = LocalDB.get().contacts.find(x => x.id === id); const container = document.getElementById('chatHistoryContainer'); container.innerHTML = '';
+    
+    let lastMsgTime = 0;
     c.history.forEach(msg => {
+        const msgTime = msg.timestamp || c.updatedAt || 0;
+        if (msgTime && (msgTime - lastMsgTime > 5 * 60 * 1000)) { 
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'chat-time-bubble';
+            timeDiv.innerText = formatRelativeTime(msgTime, true);
+            container.appendChild(timeDiv);
+            lastMsgTime = msgTime;
+        }
+
         const wrapper = document.createElement('div'); wrapper.setAttribute('data-msg-id', msg.id);
         if (msg.rawObj && msg.rawObj.isSystemEvent) {
             wrapper.className = `message-wrapper system-event-wrapper`;
@@ -918,8 +954,6 @@ ${sentenceToParse}`;
         } else alert("解析返回数据异常");
     } catch(e) { alert("解析段落失败: " + e.message); } hideSysStatus();
 }
-
-function formatTime(secs) { const m = Math.floor(secs / 60).toString().padStart(2, '0'); const s = (secs % 60).toString().padStart(2, '0'); return `${m}:${s}`; }
 
 async function userInitiateCall() {
     if(!currentContactId) return; const db = LocalDB.get(); const contact = db.contacts.find(c => c.id === currentContactId);
@@ -1114,10 +1148,11 @@ async function handleSend(triggerAI, isReroll = false) {
     const limit = parseInt(freshContact.historyLimit) || 10; 
     const historySlice = getHistoryByTurns(freshContact.history, limit);
 
-    // 构建全局花名册
+    // 构建全局花名册与真实时间差计算
     const otherSingles = freshDb.contacts.filter(c => c.type === 'single' && c.id !== targetContactId);
-    const otherNames = otherSingles.map(c => `${c.name}(${c.relation||'无关系'})`).join('、 ');
-    let globalDirectorPrompt = otherNames ? `\n\n【上帝视角与后台打断机制】\n当前世界中还存在以下其他角色：[${otherNames}]。如果你觉得符合逻辑（比如某人是个粘人精刚好在这时查岗，或者发生什么事牵连到TA），你可以作为总导演，安排这些后台角色**突然给用户发来私聊或打视频电话**！请放在JSON的 'background_interruptions' 数组中。` : "";
+    const otherNamesInfo = otherSingles.map(c => `- ${c.name} (关系: ${c.relation||'未知'} | 距离上次聊天已过: ${formatRelativeTime(c.updatedAt)})`).join('\n');
+    
+    let globalDirectorPrompt = otherNamesInfo ? `\n\n【上帝视角与后台并行世界 (极其重要)】\n当前世界中还存在以下后台角色，且时间是同步流动的：\n${otherNamesInfo}\n\n作为总导演，你**必须**评估这些后台角色当前的状态。请结合TA们的人设职业（打工人/学生/闲人）、性格，以及【距离上次聊天已过的时间】，决定TA们现在是否会**突然主动**给用户发私信或打电话！\n触发动机参考：\n1. 时间驱动：如果过了很久（几小时/几天），正常朋友可能分享日常/发梗图；如果是粘人精/病娇，几分钟没理就会发疯查岗。\n2. 身份作息：打工人上班时间通常潜水，晚上/周末才会活跃找人。\n如果你认为某个/些后台角色此时应该主动找用户，请将动作放在JSON的 'background_interruptions' 数组中。如果大家都安静，就返回空数组 []。` : "";
 
     let formatInstruction = ""; let modePrompt = ""; let crossChatEcho = "";
     const transRule = `\n【绝对翻译铁律】无论原句是什么方言或语种，JSON中的'translation'字段必须且只能使用[${transLang}]输出！严禁自作主张转换为英语或其他语言！`;
@@ -1178,8 +1213,14 @@ async function handleSend(triggerAI, isReroll = false) {
 
     const messages = [{ role: "system", content: fullSystem }];
     historySlice.forEach(m => {
-        if (m.rawObj && m.rawObj.isSystemEvent) messages.push({ role: 'user', content: `【系统级客观事实强制注入】(注意：下面这句话不是用户的发言！而是系统中刚刚发生的绝对客观事实！请你立刻根据你的人设对此事件做出真实反应！)：\n${m.content}` });
-        else messages.push({ role: m.type === 'sent' ? 'user' : 'assistant', content: m.type === 'sent' ? m.content : `【${m.speakerName||freshContact.name}】: ${m.content}` });
+        if (m.rawObj && m.rawObj.isCallTranscript) {
+            let transcript = m.rawObj.log.map(l => `${l.type==='sent'?'User':(freshContact.type==='group'?l.speakerName:freshContact.name)}: ${l.text}`).join('\n');
+            messages.push({ role: 'system', content: `【系统提示：以下是刚刚发生的视频通话完整内容，请作为短期记忆参考】\n${transcript}\n【通话记录结束】` });
+        } else if (m.rawObj && m.rawObj.isSystemEvent) {
+            messages.push({ role: 'user', content: `【系统级客观事实强制注入】(注意：下面这句话不是用户的发言！而是系统中刚刚发生的绝对客观事实！请你立刻根据你的人设对此事件做出真实反应！)：\n${m.content}` });
+        } else {
+            messages.push({ role: m.type === 'sent' ? 'user' : 'assistant', content: m.type === 'sent' ? m.content : `【${m.speakerName||freshContact.name}】: ${m.content}` });
+        }
     });
     
     if (isReroll && txt) {
@@ -1189,7 +1230,7 @@ async function handleSend(triggerAI, isReroll = false) {
     if (isTimePass) {
          let timePassPrompt = freshContact.type === 'group'
              ? "【时间推进】(用户没有发话，处于潜水围观状态。时间继续流逝。请让群员们继续他们之间的话题、争吵或互动，绝不要每次都停下来艾特用户问为什么不说话！)"
-             : "【时间推进】(用户没有发话，时间继续流逝。请根据你的性格自然推演下一步：可能是连发双重消息Double-text、转移话题、发表情包，或者如果你性格暴躁也可以发脾气。切忌像复读机一样死板地问'在吗'。)";
+             : "【时间推进】(用户没有发话，时间继续流逝。请结合你的性格，以及刚刚我发给你的【时间差/作息】，自然推演下一步：可能是连发双重消息Double-text、转移话题、发表情包，或者如果你性格暴躁也可以发脾气。切忌像复读机一样死板地问'在吗'。)";
          messages.push({ role: "system", content: timePassPrompt });
     }
 
@@ -1315,27 +1356,44 @@ function renderMemoryVisuals(memoryText) {
 
 async function checkSummary(id, force = false) {
     const db = LocalDB.get(); const contact = db.contacts.find(c => c.id === id);
-    const threshold = parseInt(contact.summaryThreshold) || 30; const startIndex = contact.summarizedCount || 0; const unsummarizedHistory = contact.history.slice(startIndex);
-    if(force || unsummarizedHistory.length >= threshold) {
-        if(unsummarizedHistory.length === 0) return; 
+    const threshold = parseInt(contact.summaryThreshold) || 30; const startIndex = contact.summarizedCount || 0; 
+    
+    // 批处理逻辑：只取这一批
+    const batchSlice = contact.history.slice(startIndex, startIndex + threshold);
+    
+    if(force || batchSlice.length >= threshold) {
+        if(batchSlice.length === 0) return; 
+        
+        // 如果是手动强行点击，且不足阈值，也给它处理了
         let historyStr = "";
-        let dynPrompt = `你是一个没有感情的【客观状态同步器】。你的任务是根据最新对话，更新和压缩【已有记忆库】。\n【核心原则：去重与合并 (Merge & Update)】\n1. **绝对禁止**将同一件事拆成多条记录！\n2. 如果新对话信息在旧记忆中存在，**直接更新旧条目**，不新增。\n3. **极度压缩**：将对话压缩为1句精炼的“事实/状态描述”。\n`;
+        let dynPrompt = `你是一个【绝对客观的记忆档案管理员】。你正在维护一份长期的、按时间线发展的记忆档案。
+【增量更新原则】
+1. 请阅读【已有记忆库】和【最新发生的一段对话】。
+2. 如果新对话是已有事件的后续，请**更新**对应编号的条目。
+3. 如果新对话是全新的事件，请**在末尾新增**新的编号条目。
+4. 🥕符号代表【重要性星级(1-10)】，绝对不是经验值，严禁相加！
+5. **【最高铁律：绝对客观的上帝视角】**：你必须以第三人称记录，明确使用角色的名字（如“${contact.name}”）和“User(用户)”，**绝对禁止**使用“我”或“你”！一旦用错会导致系统人称混乱！\n`;
         if (contact.type === 'group') {
-            historyStr = unsummarizedHistory.map(m => `${m.type === 'sent' ? 'User' : (m.speakerName||'群员')}: ${m.content}`).join("\n");
-            dynPrompt += `4. **【群聊客观记录法则】**：当前是群聊。请客观记录【群成员之间】及【群成员与用户之间】的重要互动、矛盾或修罗场。只记录客观事实结果，不写成文学赏析或对比小作文。\n`;
+            historyStr = batchSlice.map(m => `${m.type === 'sent' ? 'User' : (m.speakerName||'群员')}: ${m.content}`).join("\n");
+            dynPrompt += `6. **【群聊客观记录】**：记录群成员间的重要互动与修罗场。\n`;
         } else {
-            historyStr = unsummarizedHistory.map(m => `${m.type === 'sent' ? 'User' : contact.name}: ${m.content}`).join("\n");
-            dynPrompt += `4. **【视角隔离铁律】**：当前是单人聊天。绝对禁止提及其他不相关的角色，绝对禁止写成多角色对比分析！记忆必须且只能极其纯粹地聚焦于【${contact.name}】与【用户】两人的互动事实。\n`;
+            historyStr = batchSlice.map(m => `${m.type === 'sent' ? 'User' : contact.name}: ${m.content}`).join("\n");
+            dynPrompt += `6. **【单人专注】**：只客观记录${contact.name}与User之间的互动。\n`;
         }
-        dynPrompt += `【强制输出格式】（必须且只能按此格式，括号内只写数字，严禁额外解释）：\n1. 简练的状态或事实描述。(🥕*8)\n2. 另一条简练的事实。(🥕*5)`;
-        const context = `【当前已有记忆】\n${contact.memory || '暂无'}\n\n【新增的待整合对话】\n${historyStr}`;
+        dynPrompt += `【强制输出格式】（保留旧条目，追加新条目）：\n1. [Day X] ${contact.name}与User发生了争吵。(🥕*8)\n2. [Day X+1] User向${contact.name}道歉。(🥕*5)`;
+        
+        const context = `【当前已有记忆】\n${contact.memory || '暂无'}\n\n【新增的待处理对话片段】\n${historyStr}`;
         const api = db.settings.apiProfiles[db.settings.currentProfileIndex];
+        
         try {
             const res = await fetch(api.baseUrl + '/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + api.key }, body: JSON.stringify({ model: api.model, temperature: 0.3, messages: [{role:"system", content: dynPrompt}, {role:"user", content: context}] }) });
             const summary = (await res.json()).choices[0].message.content;
+            
+            // 重新读取DB防止覆盖
             const freshDb = LocalDB.get(); const freshContact = freshDb.contacts.find(c => c.id === id);
             if(freshContact) {
-                freshContact.memory = summary; freshContact.summarizedCount = freshContact.history.length; 
+                freshContact.memory = summary; 
+                freshContact.summarizedCount = startIndex + batchSlice.length; // 更新进度指针
                 LocalDB.save(freshDb);
                 if(document.getElementById('roleSheet').classList.contains('show')) { 
                     document.getElementById('currentRoleMemory').value = freshContact.memory; 
@@ -1348,17 +1406,25 @@ async function checkSummary(id, force = false) {
 }
 
 async function manualSummarize() { 
-    showSysStatus("正在查看驴车是否清空..."); 
+    showSysStatus("正在搬运记忆胡萝卜..."); 
     const db = LocalDB.get(); const c = db.contacts.find(x => x.id === currentContactId); 
+    
+    // 如果用户手动清空了记忆框，重置进度指针
     let currentMemText = document.getElementById('currentRoleMemory').value.trim();
-    if (!currentMemText && c.summarizedCount > 0) { c.summarizedCount = 0; LocalDB.save(db); }
+    if (!currentMemText && c.summarizedCount > 0) { 
+        c.summarizedCount = 0; 
+        LocalDB.save(db); 
+    }
+    
     await checkSummary(currentContactId, true); hideSysStatus(); 
+    
+    // 刷新UI
     const freshDb = LocalDB.get(); const freshC = freshDb.contacts.find(x => x.id === currentContactId); 
     if(freshC) { 
         document.getElementById('currentRoleMemory').value = freshC.memory || ""; renderMemoryVisuals(freshC.memory); 
         document.getElementById('summaryProgressText').innerText = `(${freshC.summarizedCount || 0} / ${freshC.history.length || 0})`;
+        alert(`批次处理完成！当前进度：${freshC.summarizedCount}/${freshC.history.length}。如果还有剩余消息，请再次点击按钮继续提取。`); 
     } 
-    alert("这次都搬完啦！"); 
 }
 
 function renderVocabList() {
@@ -1524,15 +1590,29 @@ function saveRoleSettingsOnly() {
 
 async function reAnalyzeProfile() {
     showSysStatus("正在结合近期记忆重构性格..."); const db = LocalDB.get(); const c = db.contacts.find(x => x.id === currentContactId); const api = db.settings.apiProfiles[db.settings.currentProfileIndex];
-    let currentExtra = document.getElementById('currentRoleExtra').value.trim(); let memoryStr = c.memory || "无"; let historyStr = c.history.slice(-15).map(m => `${m.type === 'sent' ? 'User' : c.name}: ${m.content}`).join('\n') || "无";
-    let contextData = `角色名：${c.name}\n语言：${c.targetLang}\n【补充设定】\n${currentExtra}\n【当前记忆羁绊】\n${memoryStr}\n【近期聊天记录】\n${historyStr}`;
+    
+    let oldPrompt = document.getElementById('currentRolePrompt').value.trim();
+    let currentExtra = document.getElementById('currentRoleExtra').value.trim(); 
+    let memoryStr = c.memory || "无"; 
+    let historyStr = c.history.slice(-15).map(m => `${m.type === 'sent' ? 'User' : c.name}: ${m.content}`).join('\n') || "无";
+    
+    let contextData = `角色名：${c.name}\n语言：${c.targetLang}\n【当前已有核心设定(必须保留基础身份)】\n${oldPrompt}\n\n【补充设定】\n${currentExtra}\n【当前胡萝卜记忆(含近期事件)】\n${memoryStr}\n【近期聊天记录】\n${historyStr}`;
+    
     try {
-        const promptStr = `你是一个顶级心理侧写师。请根据用户提供的【角色近期互动数据】，重新评估并输出该角色当前的深度指令卡。必须输出纯JSON: {"core": "一句话核心本质(体现当前关系/年龄身份)", "style": {"tone": "当前对用户的语调", "taboos": "当前禁忌"}, "logic": ["行为逻辑1"]}`;
+        const promptStr = `你是一个顶级角色设定编辑器。用户希望根据最近的互动和记忆，**更新**该角色的设定卡，而不是重写覆盖。\n请遵循以下原则：\n1. **必须保留**原设定中的核心身份、同人背景、固有性格（如“傲娇同人角色”的基础人设不能变）。\n2. **融合更新**：将记忆中提到的近期事件（如最近在忙什么、有什么活动）概括进“当前状态”中。\n3. **动态调整**：更新与用户的当前关系状态（如从陌生变熟悉、冷战中、热恋中）、说话语调的变化（如更亲密或更冷淡）。\n\n请输出合并后的纯JSON: {"core": "融合了原身份与当前近期状态的核心描述", "style": {"tone": "当前的语调", "taboos": "当前的禁忌"}, "logic": ["行为逻辑1", "行为逻辑2"]}`;
+        
         const res = await fetch(api.baseUrl + '/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + api.key }, body: JSON.stringify({ model: api.model, temperature: 0.5, messages: [{role:"system", content: promptStr}, {role:"user", content: contextData}] }) });
         const parsed = extractJSON((await res.json()).choices[0].message.content);
+        
         let newPrompt = `【核心设定】${parsed.core}\n【说话风格】\n- 语调：${parsed.style.tone}\n- 绝对禁忌：${parsed.style.taboos}\n【行为逻辑】\n${(parsed.logic||[]).join('\n')}`;
+        
         const freshDb = LocalDB.get(); const freshContact = freshDb.contacts.find(x => x.id === currentContactId); 
-        if(freshContact) { document.getElementById('currentRolePrompt').value = newPrompt; freshContact.prompt = newPrompt; LocalDB.save(freshDb); alert("设定已重构！"); } 
+        if(freshContact) { 
+            document.getElementById('currentRolePrompt').value = newPrompt; 
+            freshContact.prompt = newPrompt; 
+            LocalDB.save(freshDb); 
+            alert("设定已增量更新！保留了原身份，并融合了近期状态。"); 
+        } 
     } catch(e) { alert("分析失败: " + e.message); } hideSysStatus();
 }
 
