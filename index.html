@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v2.9.7
+@name 驴的学习小手机 v2.9.8
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v2.9.7</title>
+<title>驴的学习小手机 v2.9.8</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -1410,19 +1410,23 @@ async function checkSummary(id, force = false) {
         let historyStr = "";
         if (contact.type === 'group') {
             historyStr = batchSlice.map(m => {
-                let dateStr = m.timestamp ? new Date(m.timestamp).toLocaleDateString('zh-CN') : new Date().toLocaleDateString('zh-CN');
+                // 提取最标准的 YYYY-MM-DD 格式
+                let d = m.timestamp ? new Date(m.timestamp) : new Date();
+                let dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
                 return `[${dateStr}] ${m.type === 'sent' ? 'User' : (m.speakerName||'群员')}: ${m.content}`;
             }).join("\n");
             dynPrompt += `6. **【群聊客观记录】**：记录群成员间的重要互动与修罗场。\n`;
         } else {
             historyStr = batchSlice.map(m => {
-                let dateStr = m.timestamp ? new Date(m.timestamp).toLocaleDateString('zh-CN') : new Date().toLocaleDateString('zh-CN');
+                let d = m.timestamp ? new Date(m.timestamp) : new Date();
+                let dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
                 return `[${dateStr}] ${m.type === 'sent' ? 'User' : contact.name}: ${m.content}`;
             }).join("\n");
             dynPrompt += `6. **【单人专注】**：只客观记录${contact.name}与User之间的互动。\n`;
         }
         
-        dynPrompt += `【强制输出格式】（保留旧条目，追加新条目。必须包含Day和真实日期）：\n1. [Day X | 2026-03-15] ${contact.name}与User发生了争吵。(🥕*8)\n2. [Day X+1 | 2026-03-16] User向${contact.name}道歉。(🥕*5)`;
+        // 核心修改点：加入【时间提取铁律】，死死按住 AI 的时间线
+        dynPrompt += `【时间提取铁律】我发给你的每一行对话开头都带有形如 [YYYY-MM-DD] 的真实发生时间。你总结时，**必须提取事件真正发生的那一天作为条目日期**，绝对不允许使用你生成总结当天的日期！\n【强制输出格式】（保留旧条目，追加新条目。必须包含Day和真实日期）：\n1. [Day X | 2026-03-17] ${contact.name}与User发生了争吵。(🥕*8)\n2. [Day X+1 | 2026-03-18] User向${contact.name}道歉。(🥕*5)`;
         
         const context = `【当前已有记忆】\n${contact.memory || '暂无'}\n\n【新增的待处理对话片段】\n${historyStr}`;
         const api = db.settings.apiProfiles[db.settings.currentProfileIndex];
