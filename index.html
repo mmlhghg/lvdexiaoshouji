@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v2.9.8
+@name 驴的学习小手机 v2.9.9
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v2.9.8</title>
+<title>驴的学习小手机 v2.9.9</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -814,7 +814,9 @@ function renderChat(id) {
     
     let lastMsgTime = 0;
     c.history.forEach(msg => {
-        const msgTime = msg.timestamp || c.updatedAt || 0;
+        // 时光回溯算法：如果消息里没存 timestamp，就从 id 里抠出来
+        const msgTime = msg.timestamp || parseInt(msg.id.replace('m', '')) || 0;
+        
         if (msgTime && (msgTime - lastMsgTime > 5 * 60 * 1000)) { 
             const timeDiv = document.createElement('div');
             timeDiv.className = 'chat-time-bubble';
@@ -1410,22 +1412,23 @@ async function checkSummary(id, force = false) {
         let historyStr = "";
         if (contact.type === 'group') {
             historyStr = batchSlice.map(m => {
-                // 提取最标准的 YYYY-MM-DD 格式
-                let d = m.timestamp ? new Date(m.timestamp) : new Date();
+                // 时光回溯：如果没timestamp，从id中剥离出毫秒级时间戳
+                let ts = m.timestamp || parseInt(m.id.replace('m', '')) || Date.now();
+                let d = new Date(ts);
                 let dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
                 return `[${dateStr}] ${m.type === 'sent' ? 'User' : (m.speakerName||'群员')}: ${m.content}`;
             }).join("\n");
             dynPrompt += `6. **【群聊客观记录】**：记录群成员间的重要互动与修罗场。\n`;
         } else {
             historyStr = batchSlice.map(m => {
-                let d = m.timestamp ? new Date(m.timestamp) : new Date();
+                let ts = m.timestamp || parseInt(m.id.replace('m', '')) || Date.now();
+                let d = new Date(ts);
                 let dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
                 return `[${dateStr}] ${m.type === 'sent' ? 'User' : contact.name}: ${m.content}`;
             }).join("\n");
             dynPrompt += `6. **【单人专注】**：只客观记录${contact.name}与User之间的互动。\n`;
         }
         
-        // 核心修改点：加入【时间提取铁律】，死死按住 AI 的时间线
         dynPrompt += `【时间提取铁律】我发给你的每一行对话开头都带有形如 [YYYY-MM-DD] 的真实发生时间。你总结时，**必须提取事件真正发生的那一天作为条目日期**，绝对不允许使用你生成总结当天的日期！\n【强制输出格式】（保留旧条目，追加新条目。必须包含Day和真实日期）：\n1. [Day X | 2026-03-17] ${contact.name}与User发生了争吵。(🥕*8)\n2. [Day X+1 | 2026-03-18] User向${contact.name}道歉。(🥕*5)`;
         
         const context = `【当前已有记忆】\n${contact.memory || '暂无'}\n\n【新增的待处理对话片段】\n${historyStr}`;
@@ -1670,7 +1673,7 @@ async function reAnalyzeGroupDynamics() {
     try {
         const promptStr = `你是一个顶级的剧本指导与社交关系分析师。请根据以下【群成员基础档案】以及【近期群聊互动记录】，重新评估并推演出他们在这个群里的最新关系网与化学反应。
 必须输出纯JSON格式：{"dynamics": "生成的群聊化学反应指令卡文本(如：A和B是跨服陌生人，但最近因为某事关系缓和；C对User很热情但对B冷嘲热讽...)"}`;
-        let contextData = `【群成员基础档案】\n${membersInfo}\n\n【本群额外约束】\n${currentExtra}\n\n【当前群公共记忆】\n${memoryStr}\n\n【近期群内聊天记录】\n${historyStr}`;
+let contextData = `【群成员基础档案】\n${membersInfo}\n\n【本群额外约束】\n${currentExtra}\n\n【当前群公共记忆】\n${memoryStr}\n\n【近期群内聊天记录】\n${historyStr}`;
         const res = await fetch(api.baseUrl + '/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + api.key }, body: JSON.stringify({ model: api.model, temperature: 0.6, messages: [{role:"system", content: promptStr}, {role:"user", content: contextData}] }) });
         const parsed = extractJSON((await res.json()).choices[0].message.content);
         if (parsed.dynamics) {
