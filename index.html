@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v2.9.6 (记忆上帝视角 & 时间气泡版)
+@name 驴的学习小手机 v2.9.7
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v2.9.6</title>
+<title>驴的学习小手机 v2.9.7</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -470,11 +470,17 @@
             </div>
         </div>
 
-        <div style="display:flex; gap:10px; margin-top: 15px;">
-            <div style="flex:1"><span class="setting-label">带入历史回合数 <span style="font-size:10px;color:#999;font-weight:normal;">(注：只要换人说话即算1个回合，AI连发多条气泡仅算1回合)</span></span><input type="number" id="currentRoleHistoryLimit" class="setting-input" placeholder="默认10"></div>
-            <div style="flex:1"><span class="setting-label">记忆提取阈值 <span id="summaryProgressText" style="color:var(--ios-blue); font-weight:bold; font-size:12px;">(0/0)</span><br><span style="font-size:10px;color:#999;font-weight:normal;">(注：若想从头重新提取，请手动清空下方记忆框后再点击搬运)</span></span><input type="number" id="currentRoleSummaryThreshold" class="setting-input" placeholder="默认30"></div>
+        <div style="display:flex; gap:10px; margin-top: 15px; align-items: stretch;">
+            <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+                <span class="setting-label">带入历史回合数 <span style="font-size:10px;color:#999;font-weight:normal;">(注：只要换人说话即算1个回合，AI连发多条气泡仅算1回合)</span></span>
+                <input type="number" id="currentRoleHistoryLimit" class="setting-input" placeholder="默认10" style="margin-bottom:0;">
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+                <span class="setting-label">记忆提取阈值 <span id="summaryProgressText" style="color:var(--ios-blue); font-weight:bold; font-size:12px;">(0/0)</span><br><span style="font-size:10px;color:#999;font-weight:normal;">(注：若想从头重新提取，请手动清空下方记忆框后再点击搬运)</span></span>
+                <input type="number" id="currentRoleSummaryThreshold" class="setting-input" placeholder="默认30" style="margin-bottom:0;">
+            </div>
         </div>
-        <hr style="margin:10px 0 20px 0;">
+        <hr style="margin:15px 0 20px 0;">
         <span class="setting-label">🥕 胡萝卜仓库 (自动记忆节点)</span>
         <div class="memory-container" id="memoryVisualContainer" style="min-height:100px; margin-bottom:10px;"></div>
         <button class="mini-btn" style="width:100%; margin-bottom:20px;" onclick="manualSummarize()">🫏强行搬运总结 (每次点击仅处理设定的批次，防止AI脑容量过载)</button>
@@ -594,6 +600,16 @@ const defaultApiProfile = { name: "默认配置", baseUrl: "https://api.openai.c
 const defaultWorldbookProfile = { name: "默认世界书", prompt: "" };
 const defaultOfflineProfile = { name: "默认场景", prompt: "" };
 const demoData = { settings: { userName: "Master", userPersona: "", translationLang: "中文", showTranslation: "true", currentProfileIndex: 0, apiProfiles: [ { ...defaultApiProfile } ], currentWorldbookIndex: 0, worldbookProfiles: [ {...defaultWorldbookProfile} ] }, contacts: [ { id: 'c1', type: 'single', name: "驴", avatar: "En", targetLang: "中文", prompt: "驴不会说话，驴只会驴叫，回到主页添加自己想聊天的用户吧~", extraPrompt: "", relation: "驴", mbti: "", mbtiData: "", maturity: "", memory: "", summarizedCount: 0, historyLimit: 10, summaryThreshold: 30, msgCount: 0, history: [], lastMsg: '...', time: '', unreadCount: 0, updatedAt: Date.now(), mode: 'online', offlineWordCount: '1000-2000', currentOfflineIndex: 0, offlineProfiles: [ {...defaultOfflineProfile} ] } ], vocab: {} };
+
+function countTurns(historyArray) {
+    if (!historyArray || historyArray.length === 0) return 0;
+    let turns = 0; let lastSpeaker = null;
+    for (let i = 0; i < historyArray.length; i++) {
+        let currentSpeaker = historyArray[i].type === 'sent' ? 'user' : (historyArray[i].speakerName || 'ai');
+        if (currentSpeaker !== lastSpeaker) { turns++; lastSpeaker = currentSpeaker; }
+    }
+    return turns;
+}
 
 const LocalDB = {
     init() { 
@@ -759,7 +775,11 @@ function openChat(id) {
             actionBtn2.style.display = 'block'; actionBtn2.innerText = "结合近期记忆重新侧写"; actionBtn2.onclick = reAnalyzeProfile;
         }
         document.getElementById('currentRoleHistoryLimit').value = latestContact.historyLimit || 10; document.getElementById('currentRoleSummaryThreshold').value = latestContact.summaryThreshold || 30; document.getElementById('currentRoleMemory').value = latestContact.memory || "";
-        document.getElementById('summaryProgressText').innerText = `(${latestContact.summarizedCount || 0} / ${latestContact.history.length || 0})`;
+        
+        let tTurns = countTurns(latestContact.history);
+        let sTurns = countTurns(latestContact.history.slice(0, latestContact.summarizedCount || 0));
+        document.getElementById('summaryProgressText').innerText = `(${sTurns} / ${tTurns})`;
+        
         renderMemoryVisuals(latestContact.memory || ""); document.getElementById('overlay').classList.add('show'); document.getElementById('roleSheet').classList.add('show'); 
     };
     renderChat(id);
@@ -1356,16 +1376,29 @@ function renderMemoryVisuals(memoryText) {
 
 async function checkSummary(id, force = false) {
     const db = LocalDB.get(); const contact = db.contacts.find(c => c.id === id);
-    const threshold = parseInt(contact.summaryThreshold) || 30; const startIndex = contact.summarizedCount || 0; 
+    const threshold = parseInt(contact.summaryThreshold) || 30; 
+    const startIndex = contact.summarizedCount || 0; 
     
-    // 批处理逻辑：只取这一批
-    const batchSlice = contact.history.slice(startIndex, startIndex + threshold);
+    const unsummarizedSlice = contact.history.slice(startIndex);
+    const unsummarizedTurns = countTurns(unsummarizedSlice);
     
-    if(force || batchSlice.length >= threshold) {
-        if(batchSlice.length === 0) return; 
+    if(force || unsummarizedTurns >= threshold) {
+        if(unsummarizedSlice.length === 0) return; 
         
-        // 如果是手动强行点击，且不足阈值，也给它处理了
-        let historyStr = "";
+        let cutIndex = startIndex;
+        let tCount = 0; let lSpeaker = null;
+        for(let i = startIndex; i < contact.history.length; i++) {
+            let curr = contact.history[i].type === 'sent' ? 'user' : (contact.history[i].speakerName || 'ai');
+            if (curr !== lSpeaker) { 
+                if (tCount >= threshold) break;
+                tCount++; lSpeaker = curr; 
+            }
+            cutIndex = i + 1;
+        }
+        
+        const batchSlice = contact.history.slice(startIndex, cutIndex);
+        if (batchSlice.length === 0) return;
+
         let dynPrompt = `你是一个【绝对客观的记忆档案管理员】。你正在维护一份长期的、按时间线发展的记忆档案。
 【增量更新原则】
 1. 请阅读【已有记忆库】和【最新发生的一段对话】。
@@ -1373,14 +1406,23 @@ async function checkSummary(id, force = false) {
 3. 如果新对话是全新的事件，请**在末尾新增**新的编号条目。
 4. 🥕符号代表【重要性星级(1-10)】，绝对不是经验值，严禁相加！
 5. **【最高铁律：绝对客观的上帝视角】**：你必须以第三人称记录，明确使用角色的名字（如“${contact.name}”）和“User(用户)”，**绝对禁止**使用“我”或“你”！一旦用错会导致系统人称混乱！\n`;
+
+        let historyStr = "";
         if (contact.type === 'group') {
-            historyStr = batchSlice.map(m => `${m.type === 'sent' ? 'User' : (m.speakerName||'群员')}: ${m.content}`).join("\n");
+            historyStr = batchSlice.map(m => {
+                let dateStr = m.timestamp ? new Date(m.timestamp).toLocaleDateString('zh-CN') : new Date().toLocaleDateString('zh-CN');
+                return `[${dateStr}] ${m.type === 'sent' ? 'User' : (m.speakerName||'群员')}: ${m.content}`;
+            }).join("\n");
             dynPrompt += `6. **【群聊客观记录】**：记录群成员间的重要互动与修罗场。\n`;
         } else {
-            historyStr = batchSlice.map(m => `${m.type === 'sent' ? 'User' : contact.name}: ${m.content}`).join("\n");
+            historyStr = batchSlice.map(m => {
+                let dateStr = m.timestamp ? new Date(m.timestamp).toLocaleDateString('zh-CN') : new Date().toLocaleDateString('zh-CN');
+                return `[${dateStr}] ${m.type === 'sent' ? 'User' : contact.name}: ${m.content}`;
+            }).join("\n");
             dynPrompt += `6. **【单人专注】**：只客观记录${contact.name}与User之间的互动。\n`;
         }
-        dynPrompt += `【强制输出格式】（保留旧条目，追加新条目）：\n1. [Day X] ${contact.name}与User发生了争吵。(🥕*8)\n2. [Day X+1] User向${contact.name}道歉。(🥕*5)`;
+        
+        dynPrompt += `【强制输出格式】（保留旧条目，追加新条目。必须包含Day和真实日期）：\n1. [Day X | 2026-03-15] ${contact.name}与User发生了争吵。(🥕*8)\n2. [Day X+1 | 2026-03-16] User向${contact.name}道歉。(🥕*5)`;
         
         const context = `【当前已有记忆】\n${contact.memory || '暂无'}\n\n【新增的待处理对话片段】\n${historyStr}`;
         const api = db.settings.apiProfiles[db.settings.currentProfileIndex];
@@ -1389,16 +1431,17 @@ async function checkSummary(id, force = false) {
             const res = await fetch(api.baseUrl + '/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + api.key }, body: JSON.stringify({ model: api.model, temperature: 0.3, messages: [{role:"system", content: dynPrompt}, {role:"user", content: context}] }) });
             const summary = (await res.json()).choices[0].message.content;
             
-            // 重新读取DB防止覆盖
             const freshDb = LocalDB.get(); const freshContact = freshDb.contacts.find(c => c.id === id);
             if(freshContact) {
                 freshContact.memory = summary; 
-                freshContact.summarizedCount = startIndex + batchSlice.length; // 更新进度指针
+                freshContact.summarizedCount = cutIndex; 
                 LocalDB.save(freshDb);
                 if(document.getElementById('roleSheet').classList.contains('show')) { 
                     document.getElementById('currentRoleMemory').value = freshContact.memory; 
                     renderMemoryVisuals(freshContact.memory); 
-                    document.getElementById('summaryProgressText').innerText = `(${freshContact.summarizedCount || 0} / ${freshContact.history.length || 0})`;
+                    let totalT = countTurns(freshContact.history);
+                    let sumT = countTurns(freshContact.history.slice(0, freshContact.summarizedCount));
+                    document.getElementById('summaryProgressText').innerText = `(${sumT} / ${totalT})`;
                 }
             }
         } catch(e) { if(force) alert("记忆提取失败: " + e.message); }
@@ -1409,7 +1452,6 @@ async function manualSummarize() {
     showSysStatus("正在搬运记忆胡萝卜..."); 
     const db = LocalDB.get(); const c = db.contacts.find(x => x.id === currentContactId); 
     
-    // 如果用户手动清空了记忆框，重置进度指针
     let currentMemText = document.getElementById('currentRoleMemory').value.trim();
     if (!currentMemText && c.summarizedCount > 0) { 
         c.summarizedCount = 0; 
@@ -1418,12 +1460,13 @@ async function manualSummarize() {
     
     await checkSummary(currentContactId, true); hideSysStatus(); 
     
-    // 刷新UI
     const freshDb = LocalDB.get(); const freshC = freshDb.contacts.find(x => x.id === currentContactId); 
     if(freshC) { 
         document.getElementById('currentRoleMemory').value = freshC.memory || ""; renderMemoryVisuals(freshC.memory); 
-        document.getElementById('summaryProgressText').innerText = `(${freshC.summarizedCount || 0} / ${freshC.history.length || 0})`;
-        alert(`批次处理完成！当前进度：${freshC.summarizedCount}/${freshC.history.length}。如果还有剩余消息，请再次点击按钮继续提取。`); 
+        let totalT = countTurns(freshC.history);
+        let sumT = countTurns(freshC.history.slice(0, freshC.summarizedCount || 0));
+        document.getElementById('summaryProgressText').innerText = `(${sumT} / ${totalT})`;
+        alert(`批次处理完成！当前进度：${sumT}/${totalT} 回合。如果还有剩余消息，请再次点击按钮继续提取。`); 
     } 
 }
 
