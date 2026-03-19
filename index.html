@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v3.0.4
+@name 驴的学习小手机 v3.0.5
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v3.0.4</title>
+<title>驴的学习小手机 v3.0.5</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -1352,18 +1352,21 @@ async function handleSend(triggerAI, isReroll = false) {
     fullSystem += globalDirectorPrompt + modePrompt + transRule + `\n【语言】[${freshContact.targetLang}]\n` + formatInstruction;
 
     const messages = [{ role: "system", content: fullSystem }];
-        historySlice.forEach(m => {
+            historySlice.forEach(m => {
         if (m.rawObj && m.rawObj.isCallTranscript) {
             let transcript = m.rawObj.log.map(l => `${l.type==='sent'?'User':l.speakerName||freshContact.name}: ${l.text}`).join('\n');
             messages.push({ role: 'system', content: `【前次通话记录】\n${transcript}` });
         } else if (m.rawObj && m.rawObj.isSystemEvent) {
-            // 修正：确保系统事件不被当作assistant发言，加上明确的上帝视角提示
             messages.push({ role: 'user', content: `（系统提示：以下是客观发生的实时状况，请据此做出反应）\n${m.content}` });
         } else {
-            // 修正：去掉历史记录里的【JSON解析崩溃】前缀，防止AI模仿错误
             let safeContent = m.content; 
             if (safeContent.includes("JSON解析崩溃")) safeContent = "(数据错误)";
-            // 关键：单人聊天不带名字前缀防止格式污染，群聊必须带名字方便AI区分说话人
+            
+            // 终极消毒：把旧版本聊天记录里不小心存进去的【名字】前缀强行洗掉，绝不让AI看到！
+            if (freshContact.type === 'single' && m.type === 'received') {
+                safeContent = safeContent.replace(/^【.*?】[:：]\s*/, '').replace(/^[a-zA-Z0-9\u4e00-\u9fa5\s]+[:：]\s*/, '');
+            }
+            
             let finalContent = (freshContact.type === 'group' && m.type === 'received') 
                 ? `【${m.speakerName || freshContact.name}】: ${safeContent}` 
                 : safeContent;
@@ -1480,30 +1483,41 @@ async function handleSend(triggerAI, isReroll = false) {
         // 尝试去掉Markdown代码块标记
         rescueText = rescueText.replace(/```json/g, '').replace(/```/g, '').trim();
         
-        if (rescueText) {
-            // 按换行符切分，这通常是AI输出的剧本格式
+                if (rescueText) {
+            // 绝杀：如果 AI 耍赖把好几个气泡用【名字】连在同一行，我们先强行插入换行符把它们劈开！
+            rescueText = rescueText.replace(/(【.*?】[:：]\s*)/g, '\n$1');
+            rescueText = rescueText.replace(/([a-zA-Z0-9\u4e00-\u9fa5]+[:：]\s*)/g, '\n$1');
+            rescueText = rescueText.replace(/(】[:：]\s*)/g, '\n$1'); // 针对残缺标签
+
             let lines = rescueText.split('\n');
-                        for (let line of lines) {
+            for (let line of lines) {
                 line = line.trim();
                 if (!line) continue;
-                // 正则清洗：去掉 "1. "、"- "、"【名字】:"、"名字: " 等所有剧本杂质
+                
+                // 终极清洗：剥离所有前缀，连偶尔抽风吐出的“原文:”也干掉
                 let cleanLine = line
-                    .replace(/^\d+[\.\s:：-]+/, '') // 去掉数字序号 (如 "1. " 或 "1: ")
-                    .replace(/^\s*[-*]\s*/, '')    // 去掉短横线或星号 (如 "- ")
-                    .replace(/^【.*?】[:：]\s*/, '') // 去掉中括号名字 (如 "【张三】: ")
-                    .replace(/^[a-zA-Z0-9\u4e00-\u9fa5\s]+[:：]\s*/, '') // 去掉纯文本名字 (如 "张三: " 或 "Assistant: ")
+                    .replace(/^\d+[\.\s:：-]+/, '') 
+                    .replace(/^\s*[-*]\s*/, '')    
+                    .replace(/^【.*?】[:：]\s*/, '') 
+                    .replace(/^】[:：]\s*/, '') 
+                    .replace(/^[a-zA-Z0-9\u4e00-\u9fa5\s]+[:：]\s*/, '') 
+                    .replace(/^原文[:：]\s*/, '') // 拦截翻译降级格式
                     .trim();
                 
-                // 只要不是纯符号，就当作一条普通消息上屏
-
-                if (cleanLine.length > 1 && !cleanLine.includes('JSON')) {
-                     LocalDB.addMessage(targetContactId, 'received', cleanLine, null); // null表示暂无翻译
+                                // 只要不是纯符号或JSON代码，就作为正常气泡上屏
+                if (cleanLine.length > 1 && !cleanLine.includes('JSON') && !cleanLine.includes('messages"')) {
+                     LocalDB.addMessage(targetContactId, 'received', cleanLine, null);
                 }
             }
+
+            if (currentContactId === targetContactId && document.getElementById('page-chat').classList.contains('active')) safeRenderCurrentChat(); else renderContactList();
+        } else {
+            // 补漏：如果是纯粹的网络断开或API报错（连返回文本都没有），需要给用户提示
+            LocalDB.addMessage(targetContactId, 'received', `(通讯异常: ${e.message})`);
             if (currentContactId === targetContactId && document.getElementById('page-chat').classList.contains('active')) safeRenderCurrentChat(); else renderContactList();
         }
     }
-    hideSysStatus(); 
+    hideSysStatus();  
 }
 
 
