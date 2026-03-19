@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v3.0.3
+@name 驴的学习小手机 v3.0.4
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v3.0.3</title>
+<title>驴的学习小手机 v3.0.4</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -972,10 +972,11 @@ async function msgReParse() {
     const globalTransLang = db.settings.translationLang || "中文";
     const bubbleTransLang = (contact.transLang || "").trim() ? contact.transLang.trim() : globalTransLang;
     
-    const prompt = `你是一个无情的JSON分词及解析机器。当前交流语言是[${targetLang}]。请把以下文本拆分为完整的句子，并进行【极其精确的分词与深度词汇解析】。
-【极致分词与标点保护】**标点符号、换行符、甚至空格都必须作为独立的词(token)拆分出来！** 绝不允许漏掉任何一个标点！所有token组合起来必须100%等同于原句！
+    // 提示词松绑：去掉了“甚至空格必须拆分”的变态要求，允许标点自由附着，降低AI崩溃率
+    const prompt = `你是一个无情的JSON分词及解析机器。当前交流语言是[${targetLang}]。请把以下文本拆分为完整的句子，并进行【词汇解析】。
+【分词要求】按顺序拆分句子中的单词。标点符号可以单独作为token，也可以直接连在单词后面。绝不要求你把空格当成独立的词拆出来！只要保证所有的 word 按顺序大致能还原原意即可。
 【绝对翻译铁律】无论原文多像中文，'translation'字段必须使用[${bubbleTransLang}]输出！
-格式：{"analysis": [{"sentence": "该句完整原句","translation": "翻译","tokens": [{"word":"词汇","pron":"发音","pos":"词性","mean":"释义","ex":[{"text":"例句","zh":"翻译"}]}]}]}
+格式：{"analysis": [{"sentence": "该句完整原句","translation": "翻译","tokens": [{"word":"实际单词或标点","pron":"发音","pos":"词性","mean":"释义","ex":[{"text":"例句","zh":"翻译"}]}]}]}
 
 要处理的文本如下：
 ${pureContent}`;
@@ -994,10 +995,11 @@ async function deepParseContext(word) {
     const globalTransLang = db.settings.translationLang || "中文"; // 词典深层解析强制使用母语
     
     try {
-        const prompt = `你是一个无情的JSON分词及解析机器。请对以下句子进行【极其精确的分词与深度词汇解析】。请你自动判定这句文本的真实语言。
-**标点符号、空格都必须作为独立的词拆分！** 所有 token 组合起来必须100%等同于原句！
+        // 提示词松绑：同理，去掉极端严格要求
+        const prompt = `你是一个无情的JSON分词及解析机器。请对以下句子进行【分词与深度词汇解析】。请你自动判定这句文本的真实语言。
+【分词要求】按顺序拆分句子中的单词即可，标点符号可以单独作为token，也可以依附在单词上。不需要把空格当作单独的词拆出来！
 【绝对翻译铁律】'translation'字段必须使用[${globalTransLang}]输出！
-格式：{"translation": "翻译","tokens": [{"word":"词","pron":"发音","pos":"词性","mean":"释义"}]}
+格式：{"translation": "翻译","tokens": [{"word":"单词","pron":"发音","pos":"词性","mean":"释义"}]}
 文本如下：
 ${sentenceToParse}`;
         const res = await fetch(api.baseUrl + '/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + api.key }, body: JSON.stringify({ model: api.model, temperature: 0.1, messages: [{role:"user", content: prompt}] }) });
