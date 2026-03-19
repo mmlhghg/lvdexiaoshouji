@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v3.0.1
+@name 驴的学习小手机 v3.0.2
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v3.0.1</title>
+<title>驴的学习小手机 v3.0.2</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -603,6 +603,13 @@ function formatRelativeTime(timestamp, isChatBubble = false) {
         return dateStr;
     }
 }
+
+function formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
 
 const DB_KEY = 'ai_tutor_db_v30';
 const defaultApiProfile = { name: "默认配置", baseUrl: "https://api.openai.com/v1", key: "", model: "gpt-3.5-turbo", temp: 0.7 };
