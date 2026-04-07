@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v3.4.7
+@name 驴的学习小手机 v3.4.8
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v3.4.7</title>
+<title>驴的学习小手机 v3.4.8</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -1369,8 +1369,8 @@ async function userInitiateCall(isVideo) {
     const bubbleTransLang = (contact.transLang || "").trim() ? contact.transLang.trim() : (db.settings.translationLang || "中文");
     const isDramaZh = (contact.dramaLang !== "target");
     const dLang = isDramaZh ? "中文" : contact.targetLang;
-    const jsonAction = isDramaZh ? "(【必须用中文】客观动作/听觉环境描写。绝不能写台词！)" : "(【统一用目标语言】客观动作/听觉环境描写。绝不能写台词！)";
-    const jsonSentence = isDramaZh ? `(【必须用${contact.targetLang}】刚刚reply里的那句话，千万不要混入中文)` : "(刚刚reply里的那句话，必须是纯文本)";
+    const jsonAction = isDramaZh ? "直接写客观动作/听觉描写。绝不能写台词，强制用中文，绝对禁止加[中文]等前缀标签" : "直接写客观动作/听觉描写。绝不能写台词，统一用目标语言";
+    const jsonSentence = isDramaZh ? `直接写刚刚reply里的那句话，强制用${contact.targetLang}，千万别混入中文，绝不能加任何前缀` : "刚刚reply里的那句话，必须是纯文本";
     
     const validHistory = contact.history.filter(m => !(m.rawObj && m.rawObj.isErrorMsg));
     const lastMsgIsUser = validHistory.length > 0 && validHistory[validHistory.length - 1].type === 'sent';
@@ -1588,8 +1588,8 @@ async function handleCallSend(isTimePass = false) {
     const bubbleTransLang = (contact.transLang || "").trim() ? contact.transLang.trim() : (db.settings.translationLang || "中文");
     const isDramaZh = (contact.dramaLang !== "target");
     const dLang = isDramaZh ? "中文" : contact.targetLang;
-    const jsonAction = isDramaZh ? "(【必须用中文】客观动作描写。绝对禁止写台词！若闭麦对方听不见)" : "(【统一用目标语言】客观动作描写。绝对禁止写台词！若闭麦对方听不见)";
-    const jsonSentence = isDramaZh ? `(【必须用${contact.targetLang}】对着麦克风说出口的话，千万不要混入中文。若闭麦留空)` : "(对着麦克风说出口的话，若闭麦留空)";
+    const jsonAction = isDramaZh ? "直接写客观动作描写，绝对禁止写台词。强制用中文，禁止加[中文]等前缀标签" : "直接写客观动作描写，绝对禁止写台词。统一用目标语言";
+    const jsonSentence = isDramaZh ? `直接写对着麦克风说出口的话，强制用${contact.targetLang}。若闭麦留空，禁止加前缀标签` : "直接写对着麦克风说出口的话，若闭麦留空";
     const timeStr = new Date().toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit' });
     
     const callContextPrompt = `\n【当前场景：实时双向通话中】
@@ -1710,9 +1710,9 @@ async function handleSend(triggerAI, isReroll = false) {
     
     const isDramaZh = (freshContact.dramaLang !== "target");
     const dLang = isDramaZh ? "中文" : freshContact.targetLang;
-    const jsonAction = isDramaZh ? "(【必须用中文】客观动作描写)" : "(【统一用目标语言】客观动作描写)";
-    const jsonThought = isDramaZh ? "(【必须用中文】第一人称内心戏)" : "(【统一用目标语言】第一人称内心戏)";
-    const jsonSentence = isDramaZh ? `(【必须用${freshContact.targetLang}】说出口的话，千万不要混入中文)` : "(说出口的话)";
+    const jsonAction = isDramaZh ? "直接写客观动作描写，强制用中文，绝对禁止加[中文]等前缀标签" : "直接写客观动作描写，统一用目标语言";
+    const jsonThought = isDramaZh ? "直接写第一人称内心戏，强制用中文，绝对禁止加前缀" : "直接写第一人称内心戏，统一用目标语言";
+    const jsonSentence = isDramaZh ? `直接写说出口的话，强制用${freshContact.targetLang}，千万别混入中文，绝不能加语言前缀` : "直接写说出口的话";
     
     const now = new Date(); const timeStr = now.toLocaleString('zh-CN', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
     const limit = parseInt(freshContact.historyLimit) || 10; 
@@ -1726,8 +1726,8 @@ async function handleSend(triggerAI, isReroll = false) {
 
     let formatInstruction = ""; let modePrompt = ""; let crossChatEcho = "";
     const transRule = isDramaZh 
-        ? `\n【语言隔离铁律】因为用户看不懂外语的剧本描写，所以你的action(客观动作神态)和inner_thought(内心独白)必须且只能使用[中文]输出！但是，你嘴里说出口的台词sentence必须使用[${freshContact.targetLang}]！'translation'必须使用[${bubbleTransLang}]！`
-        : `\n【全外语沉浸模式】为了保持绝对的语境沉浸，你的action(客观动作)、inner_thought(内心独白)以及嘴里说出口的sentence(台词)，请全部统一使用[${freshContact.targetLang}]输出！'translation'必须使用[${bubbleTransLang}]！`;
+        ? `\n【语言隔离铁律】因为用户看不懂外语的剧本描写，所以你的action(客观动作神态)和inner_thought(内心独白)必须且只能使用[中文]输出！但是，你嘴里说出口的台词sentence必须使用[${freshContact.targetLang}]！'translation'必须使用[${bubbleTransLang}]！\n【防前缀警告】JSON的各个字段请直接填写内容本身，绝对禁止在文本开头加上“[中文]”、“[目标语言]”、“(内心)”等任何说明性标签！`
+        : `\n【全外语沉浸模式】为了保持绝对的语境沉浸，你的action(客观动作)、inner_thought(内心独白)以及嘴里说出口的sentence(台词)，请全部统一使用[${freshContact.targetLang}]输出！'translation'必须使用[${bubbleTransLang}]！\n【防前缀警告】绝不能在文本开头加上“[外语]”、“[日文]”等任何提示性标签！`;
         
     const realityFilter = `\n【设定现实化感知】\n请将一切极端设定转化为现代法治社会中的真实人类行为(如查岗、生闷气)。\n【动态情绪演进】若观察到用户连续敷衍/沉默，必须展现出层层递进的情绪变化，拒绝复读。\n【格式排版铁律】绝对禁止在台词前加自己的名字或冒号(如"张三:")！绝对禁止输出类似的角色名前缀，必须直接输出说话内容！非常鼓励使用 \`[图片: 描述]\` 或 \`[语音: 内容]\` 标签来丰富互动体验。\n【系统级事件调用】除了发消息，你还可以在 JSON 的 \`system_event\` 字段输出系统级的客观事件，用于模拟具体的UI操作(例如：向对方发送了实时定位、向对方转账了520元)，用户屏幕会浮现这条客观事实。同样的，如果聊天记录中对方发来了系统事件，请将其视为绝对真实的客观事实并做出合理反应。`;
     
@@ -2908,7 +2908,7 @@ async function executeMiniMaxTTS(text, btnEl, isAutoCall = false, profileToUse =
         // ==========================================
         // ====== 版本更新公告配置 (每次更新修改这里) ======
         // ==========================================
-        const CURRENT_APP_VERSION = "3.4.7"; // 每次发布新版本，修改这个版本号
+        const CURRENT_APP_VERSION = "3.4.8"; // 每次发布新版本，修改这个版本号
         const UPDATE_CHANGELOG_HTML = `
             1. <b>通话部分更新</b>：现在可以决定打电话还是打视频啦!(不会真开你摄像头!)<br><br>
             2. <b>对话改进</b>：内心话和动作可以决定开关了(也可以决定语言,默认中文的话就不会那么痛苦了罢...)<br><br>
