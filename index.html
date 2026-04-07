@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v3.4.1
+@name 驴的学习小手机 v3.4.2
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v3.4.1</title>
+<title>驴的学习小手机 v3.4.2</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -2679,8 +2679,25 @@ async function playTTS(text, langHint = "") {
     const db = LocalDB.get();
     const s = db.settings;
     
-    let idx = s.vocabMmProfileIndex || 0;
-    let profileToUse = s.mmProfiles[idx] || { engine: "local", localRate: "1.0", localPitch: "1.0" };
+    let profileToUse = null;
+
+    // 判断：如果当前是在聊天界面或通话中，优先提取当前角色的专属发音档
+    let activeId = null;
+    if (inCall && activeCallContactId) activeId = activeCallContactId;
+    else if (document.getElementById('page-chat').classList.contains('active') && currentContactId) activeId = currentContactId;
+
+    if (activeId) {
+        const c = db.contacts.find(x => x.id === activeId);
+        if (c && c.mmProfileIndex !== undefined && c.mmProfileIndex < s.mmProfiles.length) {
+            profileToUse = s.mmProfiles[c.mmProfileIndex];
+        }
+    }
+    
+    // 兜底：如果不在聊天中（比如在生词本、闪卡主页），则使用生词本全局发音配置
+    if (!profileToUse) {
+        let idx = s.vocabMmProfileIndex || 0;
+        profileToUse = s.mmProfiles[idx] || { engine: "local", localRate: "1.0", localPitch: "1.0" };
+    }
     
     const engine = profileToUse.engine || 'local';
     if (engine === 'mute') return;
@@ -2786,7 +2803,7 @@ async function executeMiniMaxTTS(text, btnEl, isAutoCall = false, profileToUse =
         // ==========================================
         // ====== 版本更新公告配置 (每次更新修改这里) ======
         // ==========================================
-        const CURRENT_APP_VERSION = "3.4.1"; // 每次发布新版本，修改这个版本号
+        const CURRENT_APP_VERSION = "3.4.2"; // 每次发布新版本，修改这个版本号
         const UPDATE_CHANGELOG_HTML = `
             1. <b>通话部分更新</b>：现在可以决定打电话还是打视频啦!(不会真开你摄像头!)<br><br>
             2. <b>对话改进</b>：内心话和动作可以决定开关了(也可以决定语言,默认中文的话就不会那么痛苦了罢...)<br><br>
