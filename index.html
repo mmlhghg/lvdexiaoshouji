@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v3.3.8
+@name 驴的学习小手机 v3.4.0
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v3.3.8</title>
+<title>驴的学习小手机 v3.4.0</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -391,6 +391,7 @@
       <div class="list-group" style="margin-top: 16px;">
         <div class="list-item-static" onclick="openWorldSettingSheet()"><div class="li-title">世界书 / 全局设定</div><div class="li-arrow">&gt;</div></div>
         <div class="list-item-static" onclick="openApiSettingSheet()"><div class="li-title">API 接口配置</div><div class="li-arrow">&gt;</div></div>
+        <div class="list-item-static" onclick="openTtsSettingSheet()"><div class="li-title">全局发音设置</div><div class="li-arrow">&gt;</div></div>
       </div>
       <div class="list-group">
         <div class="list-item-static" onclick="exportGlobalData()"><div class="li-title">导出全局备份 (JSON)</div><div class="li-arrow">&gt;</div></div>
@@ -510,7 +511,9 @@
 
 <div class="ios-sheet" id="worldSettingSheet"><div class="drag-area-top" onclick="closeWorldSettingSheet()"><div class="drag-indicator"></div></div><div class="sheet-scroll"><h2 style="text-align:center; margin-bottom:20px;">全局世界书</h2><div class="example-box"><span class="setting-label">世界背景档管理</span><div class="profile-row"><select id="worldbookProfileSelect" class="profile-select" onchange="switchWorldbookProfile()"></select><button class="icon-btn" onclick="renameCurrentWorldbook()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button><button class="icon-btn" style="color:var(--ios-red);" onclick="deleteCurrentWorldbook()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></div><button class="mini-btn" style="width:100%; margin-bottom:15px; height: 35px;" onclick="addNewWorldbook()">+ 新建世界背景</button><span class="setting-label">全局系统提示词</span><textarea id="globalSystemPrompt" class="setting-textarea" oninput="autoSaveWorldbook()"></textarea></div><button class="ios-action-btn" onclick="closeWorldSettingSheet()">完成</button></div></div>
 
-<div class="ios-sheet" id="apiSettingSheet"><div class="drag-area-top" onclick="closeApiSettingSheet()"><div class="drag-indicator"></div></div><div class="sheet-scroll"><h2 style="text-align:center; margin-bottom:20px;">API 配置中心</h2><div class="example-box"><span class="setting-label">配置档管理</span><div class="profile-row"><select id="apiProfileSelect" class="profile-select" onchange="switchApiProfile()"></select><button class="icon-btn" onclick="renameCurrentProfile()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button><button class="icon-btn" style="color:var(--ios-red);" onclick="deleteCurrentProfile()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></div><button class="ios-action-btn" style="height:40px; font-size:15px; background:#fff; border:1px solid var(--ios-blue); color:var(--ios-blue); margin-bottom:20px;" onclick="addNewProfile()">+ 新建配置档</button><hr style="border:none; border-top:1px solid #eee; margin-bottom:20px;"><span class="setting-label">API Base URL</span><input type="text" id="apiBaseUrl" class="setting-input" oninput="autoSaveApiSettings()"><span class="setting-label">API Key</span><input type="password" id="apiKey" class="setting-input" oninput="autoSaveApiSettings()"><span class="setting-label">模型 (Model)</span><select id="fetchedModelsSelect" class="setting-input" style="display:none; color:var(--ios-blue); font-weight:600;" onchange="document.getElementById('apiModel').value=this.value; autoSaveApiSettings();"></select><div style="display: flex; gap: 8px; margin-bottom: 20px;"><input type="text" id="apiModel" class="setting-input" style="margin-bottom:0;" oninput="autoSaveApiSettings()"><button class="ios-action-btn" style="width:auto; padding:0 15px; height:44px; font-size:14px;" onclick="fetchModels()">拉取模型</button></div><span class="setting-label">温度 (Temperature): <span id="tempValue">0.7</span></span><input type="range" id="apiTemp" min="0" max="2" step="0.1" style="width:100%; margin-bottom:20px;" oninput="document.getElementById('tempValue').innerText = this.value; autoSaveApiSettings()"><hr style="border:none; border-top:1px solid #eee; margin-bottom:20px;"><span class="setting-label" style="color:var(--ios-orange);">对话/通话 语音发音引擎</span><select id="chatTtsEngine" class="setting-input" onchange="autoSaveApiSettings()"><option value="local">本地浏览器 TTS (支持有限)</option><option value="minimax">MiniMax</option><option value="mute">关闭语音</option></select><span class="setting-label" style="color:var(--ios-blue);">生词本字典 语音发音引擎</span><select id="vocabTtsEngine" class="setting-input" style="margin-bottom:0;" onchange="autoSaveApiSettings()"><option value="local">本地浏览器 TTS (支持有限)</option><option value="minimax">MiniMax(需配密钥)</option><option value="mute">关闭语音</option></select></div><button class="ios-action-btn" style="background:var(--ios-orange); margin-bottom:12px;" onclick="testApiConnection()">发送测试请求</button><button class="ios-action-btn" onclick="closeApiSettingSheet()">完成</button></div></div>
+<div class="ios-sheet" id="apiSettingSheet"><div class="drag-area-top" onclick="closeApiSettingSheet()"><div class="drag-indicator"></div></div><div class="sheet-scroll"><h2 style="text-align:center; margin-bottom:20px;">API 配置中心</h2><div class="example-box"><span class="setting-label">配置档管理</span><div class="profile-row"><select id="apiProfileSelect" class="profile-select" onchange="switchApiProfile()"></select><button class="icon-btn" onclick="renameCurrentProfile()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button><button class="icon-btn" style="color:var(--ios-red);" onclick="deleteCurrentProfile()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></div><button class="ios-action-btn" style="height:40px; font-size:15px; background:#fff; border:1px solid var(--ios-blue); color:var(--ios-blue); margin-bottom:20px;" onclick="addNewProfile()">+ 新建配置档</button><hr style="border:none; border-top:1px solid #eee; margin-bottom:20px;"><span class="setting-label">API Base URL</span><input type="text" id="apiBaseUrl" class="setting-input" oninput="autoSaveApiSettings()"><span class="setting-label">API Key</span><input type="password" id="apiKey" class="setting-input" oninput="autoSaveApiSettings()"><span class="setting-label">模型 (Model)</span><select id="fetchedModelsSelect" class="setting-input" style="display:none; color:var(--ios-blue); font-weight:600;" onchange="document.getElementById('apiModel').value=this.value; autoSaveApiSettings();"></select><div style="display: flex; gap: 8px; margin-bottom: 20px;"><input type="text" id="apiModel" class="setting-input" style="margin-bottom:0;" oninput="autoSaveApiSettings()"><button class="ios-action-btn" style="width:auto; padding:0 15px; height:44px; font-size:14px;" onclick="fetchModels()">拉取模型</button></div><span class="setting-label">温度 (Temperature): <span id="tempValue">0.7</span></span><input type="range" id="apiTemp" min="0" max="2" step="0.1" style="width:100%; margin-bottom:20px;" oninput="document.getElementById('tempValue').innerText = this.value; autoSaveApiSettings()"></div><button class="ios-action-btn" style="background:var(--ios-orange); margin-bottom:12px;" onclick="testApiConnection()">发送测试请求</button><button class="ios-action-btn" onclick="closeApiSettingSheet()">完成</button></div></div>
+
+<div class="ios-sheet" id="ttsSettingSheet"><div class="drag-area-top" onclick="closeTtsSettingSheet()"><div class="drag-indicator"></div></div><div class="sheet-scroll"><h2 style="text-align:center; margin-bottom:20px;">全局发音设置</h2><div class="example-box"><span class="setting-label" style="color:var(--ios-red);">对话/通话 发音总开关</span><select id="chatTtsEngine" class="setting-input" onchange="autoSaveTtsSettings()"><option value="local">允许发音 (音色与参数请在各角色页单独配置)</option><option value="mute">全局静音 (强行关闭所有对话发音)</option></select><hr style="border:none; border-top:1px solid #eee; margin-bottom:15px;"><span class="setting-label" style="color:var(--ios-blue);">生词本字典 专属语音配置档</span><div style="background:#fafafa; border:1px solid #eee; border-radius:12px; padding:12px; margin-bottom:10px;"><div class="profile-row" style="margin-bottom:10px;"><select id="vocabProfileSelect" class="profile-select" onchange="switchVocabProfile()"></select><button class="icon-btn" onclick="renameVocabProfile()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button><button class="icon-btn" style="color:var(--ios-red);" onclick="deleteVocabProfile()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></div><button class="mini-btn" style="width:100%; margin-bottom:15px; height: 35px;" onclick="addNewVocabProfile()">+ 新建语音配置档</button><select id="vocabVoiceEngine" class="setting-input" style="margin-bottom:10px; font-size:14px; font-weight:bold; color:var(--ios-blue);" onchange="toggleVocabEngineUI(); autoSaveVocabProfile();"><option value="local">使用 本地浏览器TTS (免费/离线)</option><option value="minimax">使用 MiniMax API (需配密钥)</option><option value="mute">关闭发音 (静音)</option></select><div id="vocabMmArea" style="display:none;"><select id="vocabMmEndpoint" class="setting-input" style="margin-bottom:8px; font-size: 14px;" onchange="autoSaveVocabProfile()"><option value="api.minimax.chat">国内版节点 (api.minimax.chat)</option><option value="api.minimaxi.chat">国际版节点 (api.minimaxi.chat)</option></select><input type="text" id="vocabMmGroupId" class="setting-input" placeholder="MiniMax Group ID" style="margin-bottom:8px; font-size: 14px;" oninput="autoSaveVocabProfile()"><input type="password" id="vocabMmApiKey" class="setting-input" placeholder="MiniMax API Key" style="margin-bottom:8px; font-size: 14px;" oninput="autoSaveVocabProfile()"><select id="fetchedVocabMmVoices" class="setting-input" style="display:none; color:var(--ios-blue); font-weight:600; font-size:14px; margin-bottom:8px;" onchange="document.getElementById('vocabMmVoiceId').value=this.value; autoSaveVocabProfile();"></select><div style="display: flex; gap: 8px; margin-bottom: 0;"><input type="text" id="vocabMmVoiceId" class="setting-input" style="margin-bottom:0; font-size: 14px;" placeholder="音色 ID (例如: male-qn-qingse)" oninput="autoSaveVocabProfile()"><button class="ios-action-btn" style="width:auto; padding:0 15px; height:44px; font-size:14px; margin-bottom:0;" onclick="fetchVocabMmVoices()">拉取音色</button></div></div><div id="vocabLocalArea" style="display:none;"><span class="setting-label" style="font-size:12px;">发音人模型 <span style="color:#999;">(读取设备内部音色)</span></span><select id="vocabLocalVoice" class="setting-input" style="margin-bottom:12px; font-size:14px;" onchange="autoSaveVocabProfile()"><option value="">系统自动匹配 (默认)</option></select><span class="setting-label" style="font-size:12px;">语速 (Rate): <span id="vocabLocalRateVal">1.0</span>x</span><input type="range" id="vocabLocalRate" min="0.5" max="2.0" step="0.1" value="1.0" style="width:100%; margin-bottom:12px;" oninput="document.getElementById('vocabLocalRateVal').innerText=this.value; autoSaveVocabProfile()"><span class="setting-label" style="font-size:12px;">音高 (Pitch): <span id="vocabLocalPitchVal">1.0</span></span><input type="range" id="vocabLocalPitch" min="0.1" max="2.0" step="0.1" value="1.0" style="width:100%; margin-bottom:0;" oninput="document.getElementById('vocabLocalPitchVal').innerText=this.value; autoSaveVocabProfile()"></div></div></div><button class="ios-action-btn" onclick="closeTtsSettingSheet()">完成</button></div></div>
 
 <div class="ios-sheet" id="addFriendSheet"><div class="drag-area-top" onclick="closeAddFriendSheet()"><div class="drag-indicator"></div></div><div class="sheet-scroll"><h2 style="text-align:center; margin-bottom:20px;">添加新角色</h2><div class="example-box"><span class="setting-label">角色昵称</span><input type="text" id="newFriendName" class="setting-input"><span class="setting-label">目标交流语言</span><input type="text" id="newFriendLang" class="setting-input" placeholder="例如：英语"><span class="setting-label" style="color:var(--ios-green);">气泡附带的翻译语言 (留空则读取全局母语)</span><input type="text" id="newFriendTransLang" class="setting-input" placeholder="例如：中文"><span class="setting-label">TA是你的谁？(关系)</span><input type="text" id="newFriendRelation" class="setting-input" placeholder="例如：青梅竹马、死对头"><span class="setting-label" style="color:var(--ios-red);">核心设定 (包含年龄/公开身份，AI将侧写覆盖)</span><textarea id="newFriendPrompt" class="setting-textarea" placeholder="例如：xx岁，性格xx..."></textarea><span class="setting-label" style="color:var(--ios-blue);">额外补充 (这里不会被覆盖,可手动修改)</span><textarea id="newFriendExtra" class="setting-textarea" placeholder="例如：说话必须带口癖..."></textarea></div><button class="ios-action-btn" onclick="saveNewFriend()">分析并添加</button></div></div>
 
@@ -562,17 +565,35 @@
                 </div>
                 <button class="mini-btn" style="width:100%; margin-bottom:15px; height: 35px;" onclick="addNewMmProfile()">+ 新建语音配置档</button>
                 
-                <select id="mmEndpoint" class="setting-input" style="margin-bottom:8px; font-size: 14px;" onchange="autoSaveMmProfile()">
-                    <option value="api.minimax.chat">国内版节点 (api.minimax.chat)</option>
-                    <option value="api.minimaxi.chat">国际版节点 (api.minimaxi.chat)</option>
+                <select id="voiceProfileEngine" class="setting-input" style="margin-bottom:10px; font-size:14px; font-weight:bold; color:var(--ios-blue);" onchange="toggleVoiceProfileEngine(); autoSaveMmProfile();">
+                    <option value="local">使用 本地浏览器TTS (免费/离线)</option>
+                    <option value="minimax">使用 MiniMax API (需配密钥)</option>
+                    <option value="mute">关闭发音 (静音)</option>
                 </select>
-                <input type="text" id="mmGroupId" class="setting-input" placeholder="MiniMax Group ID" style="margin-bottom:8px; font-size: 14px;" oninput="autoSaveMmProfile()">
-                <input type="password" id="mmApiKey" class="setting-input" placeholder="MiniMax API Key" style="margin-bottom:8px; font-size: 14px;" oninput="autoSaveMmProfile()">
-                
-                <select id="fetchedMmVoicesSelect" class="setting-input" style="display:none; color:var(--ios-blue); font-weight:600; font-size:14px; margin-bottom:8px;" onchange="document.getElementById('mmVoiceId').value=this.value; autoSaveMmProfile();"></select>
-                <div style="display: flex; gap: 8px; margin-bottom: 0;">
-                    <input type="text" id="mmVoiceId" class="setting-input" style="margin-bottom:0; font-size: 14px;" placeholder="音色 ID (例如: male-qn-qingse)" oninput="autoSaveMmProfile()">
-                    <button class="ios-action-btn" style="width:auto; padding:0 15px; height:44px; font-size:14px; margin-bottom:0;" onclick="fetchMmVoices()">拉取音色</button>
+
+                <div id="minimaxProfileArea" style="display:none;">
+                    <select id="mmEndpoint" class="setting-input" style="margin-bottom:8px; font-size: 14px;" onchange="autoSaveMmProfile()">
+                        <option value="api.minimax.chat">国内版节点 (api.minimax.chat)</option>
+                        <option value="api.minimaxi.chat">国际版节点 (api.minimaxi.chat)</option>
+                    </select>
+                    <input type="text" id="mmGroupId" class="setting-input" placeholder="MiniMax Group ID" style="margin-bottom:8px; font-size: 14px;" oninput="autoSaveMmProfile()">
+                    <input type="password" id="mmApiKey" class="setting-input" placeholder="MiniMax API Key" style="margin-bottom:8px; font-size: 14px;" oninput="autoSaveMmProfile()">
+                    <select id="fetchedMmVoicesSelect" class="setting-input" style="display:none; color:var(--ios-blue); font-weight:600; font-size:14px; margin-bottom:8px;" onchange="document.getElementById('mmVoiceId').value=this.value; autoSaveMmProfile();"></select>
+                    <div style="display: flex; gap: 8px; margin-bottom: 0;">
+                        <input type="text" id="mmVoiceId" class="setting-input" style="margin-bottom:0; font-size: 14px;" placeholder="音色 ID (例如: male-qn-qingse)" oninput="autoSaveMmProfile()">
+                        <button class="ios-action-btn" style="width:auto; padding:0 15px; height:44px; font-size:14px; margin-bottom:0;" onclick="fetchMmVoices()">拉取音色</button>
+                    </div>
+                </div>
+
+                <div id="localTtsProfileArea" style="display:none;">
+                    <span class="setting-label" style="font-size:12px;">发音人模型 <span style="color:#999;">(读取设备内部音色)</span></span>
+                    <select id="roleLocalTtsVoice" class="setting-input" style="margin-bottom:12px; font-size:14px;" onchange="autoSaveMmProfile()">
+                        <option value="">系统自动匹配 (默认)</option>
+                    </select>
+                    <span class="setting-label" style="font-size:12px;">语速 (Rate): <span id="roleLocalTtsRateVal">1.0</span>x</span>
+                    <input type="range" id="roleLocalTtsRate" min="0.5" max="2.0" step="0.1" value="1.0" style="width:100%; margin-bottom:12px;" oninput="document.getElementById('roleLocalTtsRateVal').innerText=this.value; autoSaveMmProfile()">
+                    <span class="setting-label" style="font-size:12px;">音高 (Pitch): <span id="roleLocalTtsPitchVal">1.0</span></span>
+                    <input type="range" id="roleLocalTtsPitch" min="0.1" max="2.0" step="0.1" value="1.0" style="width:100%; margin-bottom:0;" oninput="document.getElementById('roleLocalTtsPitchVal').innerText=this.value; autoSaveMmProfile()">
                 </div>
             </div>
         </div>
@@ -755,7 +776,7 @@ const DB_KEY = 'ai_tutor_db_v30';
 const defaultApiProfile = { name: "默认配置", baseUrl: "https://api.openai.com/v1", key: "", model: "gpt-3.5-turbo", temp: 0.7 };
 const defaultWorldbookProfile = { name: "默认世界书", prompt: "" };
 const defaultOfflineProfile = { name: "默认场景", prompt: "" };
-const defaultMmProfile = { name: "默认音色档", endpoint: "api.minimax.chat", groupId: "", apiKey: "", voiceId: "" };
+const defaultMmProfile = { name: "默认音色档", engine: "local", endpoint: "api.minimax.chat", groupId: "", apiKey: "", voiceId: "", localVoice: "", localRate: "1.0", localPitch: "1.0" };
 const demoData = { settings: { userName: "Master", userPersona: "", translationLang: "中文", showTranslation: "true", chatTtsEngine: "local", vocabTtsEngine: "local", currentProfileIndex: 0, apiProfiles: [ { ...defaultApiProfile } ], currentWorldbookIndex: 0, worldbookProfiles: [ {...defaultWorldbookProfile} ], mmProfiles: [ {...defaultMmProfile} ] }, contacts: [ { id: 'c1', type: 'single', name: "驴", avatar: "En", targetLang: "中文", transLang: "", prompt: "驴不会说话，驴只会驴叫，回到主页添加自己想聊天的用户吧~", extraPrompt: "", relation: "驴", mbti: "", mbtiData: "", maturity: "", memory: "", summarizedCount: 0, historyLimit: 10, summaryThreshold: 30, msgCount: 0, history: [], lastMsg: '...', time: '', unreadCount: 0, updatedAt: Date.now(), mode: 'online', offlineWordCount: '1000-2000', currentOfflineIndex: 0, offlineProfiles: [ {...defaultOfflineProfile} ], dramaMode: "true", mmProfileIndex: 0 } ], vocab: {} };
 
 function countTurns(historyArray) {
@@ -780,6 +801,10 @@ const LocalDB = {
             if(d.settings.currentOfflineIndex === undefined) { d.settings.currentOfflineIndex = 0; needsSave = true; }
             if(d.settings.chatTtsEngine === undefined) { d.settings.chatTtsEngine = "local"; needsSave = true; }
             if(d.settings.vocabTtsEngine === undefined) { d.settings.vocabTtsEngine = "local"; needsSave = true; }
+            if(d.settings.vocabLocalVoice === undefined) { d.settings.vocabLocalVoice = ""; needsSave = true; }
+            if(d.settings.vocabLocalRate === undefined) { d.settings.vocabLocalRate = "1.0"; needsSave = true; }
+            if(d.settings.vocabLocalPitch === undefined) { d.settings.vocabLocalPitch = "1.0"; needsSave = true; }
+            if(d.settings.vocabMmProfileIndex === undefined) { d.settings.vocabMmProfileIndex = 0; needsSave = true; }
             d.contacts.forEach(c => {
                 if(!c.type) { c.type = 'single'; needsSave = true; }
                 if(!c.mode) { c.mode = 'online'; needsSave = true; }
@@ -2078,8 +2103,6 @@ function deleteCurrentProfile() { if(confirm("删除此配置？")){ LocalDB.del
 function autoSaveApiSettings() { 
     const idx=parseInt(document.getElementById('apiProfileSelect').value); const d=LocalDB.get(); 
     d.settings.apiProfiles[idx]={ name:d.settings.apiProfiles[idx].name, baseUrl:document.getElementById('apiBaseUrl').value.trim(), key:document.getElementById('apiKey').value.trim(), model:document.getElementById('apiModel').value.trim(), temp:document.getElementById('apiTemp').value }; 
-    d.settings.chatTtsEngine = document.getElementById('chatTtsEngine') ? document.getElementById('chatTtsEngine').value : 'local';
-    d.settings.vocabTtsEngine = document.getElementById('vocabTtsEngine') ? document.getElementById('vocabTtsEngine').value : 'local';
     LocalDB.save(d); 
 }
 function loadApiProfileIntoUI() { 
@@ -2087,8 +2110,110 @@ function loadApiProfileIntoUI() {
     document.getElementById('apiBaseUrl').value=p.baseUrl; document.getElementById('apiKey').value=p.key; 
     document.getElementById('apiModel').value=p.model; document.getElementById('apiTemp').value=p.temp; 
     document.getElementById('tempValue').innerText=p.temp; document.getElementById('fetchedModelsSelect').style.display='none'; 
+}
+
+function refreshVocabProfileSelect() {
+    const db = LocalDB.get(); const sel = document.getElementById('vocabProfileSelect'); if(!sel) return; sel.innerHTML=''; 
+    db.settings.mmProfiles.forEach((p,i)=>{ const o=document.createElement('option'); o.value=i; o.text=p.name; sel.appendChild(o); }); 
+    sel.value = db.settings.vocabMmProfileIndex || 0;
+}
+function loadVocabProfileIntoUI() {
+    const db = LocalDB.get(); const idx = parseInt(document.getElementById('vocabProfileSelect').value) || 0;
+    const p = db.settings.mmProfiles[idx] || {}; 
+    document.getElementById('vocabVoiceEngine').value = p.engine || 'local';
+    toggleVocabEngineUI();
+    document.getElementById('vocabMmEndpoint').value = p.endpoint || "api.minimax.chat";
+    document.getElementById('vocabMmGroupId').value = p.groupId || ""; 
+    document.getElementById('vocabMmApiKey').value = p.apiKey || ""; 
+    document.getElementById('vocabMmVoiceId').value = p.voiceId || ""; 
+    document.getElementById('fetchedVocabMmVoices').style.display='none';
+    document.getElementById('vocabLocalVoice').value = p.localVoice || "";
+    document.getElementById('vocabLocalRate').value = p.localRate || "1.0";
+    document.getElementById('vocabLocalRateVal').innerText = p.localRate || "1.0";
+    document.getElementById('vocabLocalPitch').value = p.localPitch || "1.0";
+    document.getElementById('vocabLocalPitchVal').innerText = p.localPitch || "1.0";
+}
+function switchVocabProfile() {
+    const db = LocalDB.get(); db.settings.vocabMmProfileIndex = parseInt(document.getElementById('vocabProfileSelect').value) || 0; LocalDB.save(db);
+    loadVocabProfileIntoUI();
+}
+function addNewVocabProfile() {
+    const db = LocalDB.get(); db.settings.mmProfiles.push({ name: `新配置 ${db.settings.mmProfiles.length+1}`, engine: "local", endpoint: "api.minimax.chat", groupId: "", apiKey: "", voiceId: "", localVoice: "", localRate: "1.0", localPitch: "1.0" }); 
+    db.settings.vocabMmProfileIndex = db.settings.mmProfiles.length-1; 
+    LocalDB.save(db); refreshVocabProfileSelect(); loadVocabProfileIntoUI();
+}
+function renameVocabProfile() {
+    const n = prompt("新音色档名称:"); if(n){ const db = LocalDB.get(); const idx = parseInt(document.getElementById('vocabProfileSelect').value) || 0; db.settings.mmProfiles[idx].name = n; LocalDB.save(db); refreshVocabProfileSelect(); }
+}
+function deleteVocabProfile() {
+    const db = LocalDB.get(); if(db.settings.mmProfiles.length <= 1) return alert("保留至少一个"); 
+    if(confirm("删除此语音配置档？")){ const idx = parseInt(document.getElementById('vocabProfileSelect').value) || 0; db.settings.mmProfiles.splice(idx, 1); db.settings.vocabMmProfileIndex = 0; LocalDB.save(db); refreshVocabProfileSelect(); loadVocabProfileIntoUI(); }
+}
+function autoSaveVocabProfile() {
+    const db = LocalDB.get(); const idx = parseInt(document.getElementById('vocabProfileSelect').value) || 0;
+    db.settings.mmProfiles[idx] = { 
+        name: db.settings.mmProfiles[idx].name, 
+        engine: document.getElementById('vocabVoiceEngine').value,
+        endpoint: document.getElementById('vocabMmEndpoint').value, 
+        groupId: document.getElementById('vocabMmGroupId').value.trim(), 
+        apiKey: document.getElementById('vocabMmApiKey').value.trim(), 
+        voiceId: document.getElementById('vocabMmVoiceId').value.trim(),
+        localVoice: document.getElementById('vocabLocalVoice').value,
+        localRate: document.getElementById('vocabLocalRate').value,
+        localPitch: document.getElementById('vocabLocalPitch').value
+    }; 
+    LocalDB.save(db); 
+}
+async function fetchVocabMmVoices() {
+    autoSaveVocabProfile(); const db = LocalDB.get(); const idx = parseInt(document.getElementById('vocabProfileSelect').value) || 0; const p = db.settings.mmProfiles[idx]; 
+    if(!p.groupId || !p.apiKey) return alert("请先填写 Group ID 和 API Key"); showSysStatus("拉取可用音色中..."); 
+    try { 
+        const ep = p.endpoint || "api.minimax.chat";
+        const res = await fetch(`https://${ep}/v1/voice_detail?GroupId=${p.groupId}`, { headers: { 'Authorization': 'Bearer ' + p.apiKey } }); 
+        const json = await res.json(); 
+        if(json.base_resp && json.base_resp.status_code !== 0) throw new Error(json.base_resp.status_msg);
+        const sel = document.getElementById('fetchedVocabMmVoices'); sel.innerHTML='<option value="">点击选择音色</option>'; 
+        const voices = json.voice_list || json.data || [];
+        if(voices.length === 0) throw new Error("未获取到音色列表");
+        voices.forEach(m => { const opt = document.createElement('option'); opt.value = m.voice_id || m.id; opt.text = m.voice_id || m.id; sel.appendChild(opt); }); 
+        sel.style.display='block'; hideSysStatus(); alert("拉取成功"); 
+    } catch(e) { hideSysStatus(); alert("拉取失败: " + e.message); }
+}
+function toggleVocabEngineUI() {
+    const engine = document.getElementById('vocabVoiceEngine').value;
+    document.getElementById('vocabLocalArea').style.display = (engine === 'local') ? 'block' : 'none';
+    document.getElementById('vocabMmArea').style.display = (engine === 'minimax') ? 'block' : 'none';
+    if(engine === 'local') populateVocabLocalVoices();
+}
+function autoSaveTtsSettings() {
+    const d = LocalDB.get();
+    if(document.getElementById('chatTtsEngine')) d.settings.chatTtsEngine = document.getElementById('chatTtsEngine').value;
+    LocalDB.save(d);
+}
+function openTtsSettingSheet() {
+    const s = LocalDB.get().settings;
     if(document.getElementById('chatTtsEngine')) document.getElementById('chatTtsEngine').value = s.chatTtsEngine || 'local';
-    if(document.getElementById('vocabTtsEngine')) document.getElementById('vocabTtsEngine').value = s.vocabTtsEngine || 'local';
+    refreshVocabProfileSelect();
+    loadVocabProfileIntoUI();
+    if(typeof populateVocabLocalVoices === 'function') populateVocabLocalVoices();
+    document.getElementById('overlay').classList.add('show'); document.getElementById('ttsSettingSheet').classList.add('show');
+}
+function closeTtsSettingSheet() { document.getElementById('ttsSettingSheet').classList.remove('show'); document.getElementById('overlay').classList.remove('show'); }
+function populateVocabLocalVoices() {
+    if (!('speechSynthesis' in window)) return;
+    const voices = window.speechSynthesis.getVoices();
+    const sel = document.getElementById('vocabLocalVoice');
+    if(!sel) return;
+    const currentVal = sel.value || "";
+    sel.innerHTML = '<option value="">系统自动匹配 (默认)</option>';
+    voices.forEach(v => { const opt = document.createElement('option'); opt.value = v.voiceURI; opt.text = `${v.name} (${v.lang})`; sel.appendChild(opt); });
+    if(currentVal) sel.value = currentVal;
+}
+if ('speechSynthesis' in window) { 
+    window.speechSynthesis.addEventListener('voiceschanged', () => {
+        if(typeof populateRoleLocalVoices === 'function') populateRoleLocalVoices();
+        if(typeof populateVocabLocalVoices === 'function') populateVocabLocalVoices();
+    });
 }
 async function fetchModels() { autoSaveApiSettings(); const api = LocalDB.get().settings.apiProfiles[LocalDB.get().settings.currentProfileIndex]; if(!api.baseUrl || !api.key) return alert("请填写接口与密钥"); showSysStatus("拉取模型..."); try { const res = await fetch(api.baseUrl + '/models', { headers: { 'Authorization': 'Bearer ' + api.key } }); const json = await res.json(); const sel = document.getElementById('fetchedModelsSelect'); sel.innerHTML='<option value="">点击选择拉取的模型</option>'; json.data.forEach(m => { const opt = document.createElement('option'); opt.value = m.id; opt.text = m.id; sel.appendChild(opt); }); sel.style.display='block'; hideSysStatus(); alert("拉取成功"); } catch(e) { hideSysStatus(); alert("拉取失败: " + e.message); } }
 async function testApiConnection() { autoSaveApiSettings(); const api = LocalDB.get().settings.apiProfiles[LocalDB.get().settings.currentProfileIndex]; showSysStatus("连通接口..."); try { const res = await fetch(api.baseUrl + '/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + api.key }, body: JSON.stringify({ model: api.model, messages: [{role:"user", content:"测试连通"}] }) }); hideSysStatus(); if(res.ok) alert("测试连通成功"); else alert("连通异常: " + res.status); } catch(e) { hideSysStatus(); alert("抛出错误: " + e.message); } }
@@ -2363,9 +2488,28 @@ function resetDB() { if(confirm("确认清空并重置所有数据？")) { local
 
 showRootPage('page-contacts', '好友列表');
 // ====== MiniMax 语音配置档管理 ======
+function populateRoleLocalVoices() {
+    if (!('speechSynthesis' in window)) return;
+    const voices = window.speechSynthesis.getVoices();
+    const sel = document.getElementById('roleLocalTtsVoice');
+    if(!sel) return;
+    const currentVal = sel.value;
+    sel.innerHTML = '<option value="">系统自动匹配 (默认)</option>';
+    voices.forEach(v => { const opt = document.createElement('option'); opt.value = v.voiceURI; opt.text = `${v.name} (${v.lang})`; sel.appendChild(opt); });
+    if(currentVal) sel.value = currentVal;
+}
+if ('speechSynthesis' in window) { window.speechSynthesis.onvoiceschanged = populateRoleLocalVoices; }
+
+function toggleVoiceProfileEngine() {
+    const engine = document.getElementById('voiceProfileEngine').value;
+    document.getElementById('minimaxProfileArea').style.display = (engine === 'minimax') ? 'block' : 'none';
+    document.getElementById('localTtsProfileArea').style.display = (engine === 'local') ? 'block' : 'none';
+    if(engine === 'local') populateRoleLocalVoices();
+}
+
 function refreshMmProfileSelect() { 
     const db = LocalDB.get(); const sel = document.getElementById('mmProfileSelect'); sel.innerHTML=''; 
-    if(!db.settings.mmProfiles) db.settings.mmProfiles = [{ name: "默认音色档", endpoint: "api.minimax.chat", groupId: "", apiKey: "", voiceId: "" }];
+    if(!db.settings.mmProfiles) db.settings.mmProfiles = [{ name: "默认音色档", engine: "local", endpoint: "api.minimax.chat", groupId: "", apiKey: "", voiceId: "", localVoice: "", localRate: "1.0", localPitch: "1.0" }];
     db.settings.mmProfiles.forEach((p,i)=>{ const o=document.createElement('option'); o.value=i; o.text=p.name; sel.appendChild(o); }); 
     const c = db.contacts.find(x => x.id === currentContactId);
     if(c && c.mmProfileIndex !== undefined && c.mmProfileIndex < db.settings.mmProfiles.length) sel.value = c.mmProfileIndex;
@@ -2375,11 +2519,19 @@ function loadMmProfileIntoUI() {
     const db = LocalDB.get(); const idx = parseInt(document.getElementById('mmProfileSelect').value);
     if(isNaN(idx)) return;
     const p = db.settings.mmProfiles[idx]; 
+    document.getElementById('voiceProfileEngine').value = p.engine || 'minimax';
+    toggleVoiceProfileEngine();
     document.getElementById('mmEndpoint').value = p.endpoint || "api.minimax.chat";
     document.getElementById('mmGroupId').value = p.groupId || ""; 
     document.getElementById('mmApiKey').value = p.apiKey || ""; 
     document.getElementById('mmVoiceId').value = p.voiceId || ""; 
     document.getElementById('fetchedMmVoicesSelect').style.display='none';
+    
+    document.getElementById('roleLocalTtsVoice').value = p.localVoice || "";
+    document.getElementById('roleLocalTtsRate').value = p.localRate || "1.0";
+    document.getElementById('roleLocalTtsRateVal').innerText = p.localRate || "1.0";
+    document.getElementById('roleLocalTtsPitch').value = p.localPitch || "1.0";
+    document.getElementById('roleLocalTtsPitchVal').innerText = p.localPitch || "1.0";
 }
 function switchMmProfile() { 
     const db = LocalDB.get(); const c = db.contacts.find(x => x.id === currentContactId); 
@@ -2387,7 +2539,7 @@ function switchMmProfile() {
     loadMmProfileIntoUI(); 
 }
 function addNewMmProfile() { 
-    const db = LocalDB.get(); db.settings.mmProfiles.push({ name: `新配置 ${db.settings.mmProfiles.length+1}`, endpoint: "api.minimax.chat", groupId: "", apiKey: "", voiceId: "" }); 
+    const db = LocalDB.get(); db.settings.mmProfiles.push({ name: `新配置 ${db.settings.mmProfiles.length+1}`, engine: "local", endpoint: "api.minimax.chat", groupId: "", apiKey: "", voiceId: "", localVoice: "", localRate: "1.0", localPitch: "1.0" }); 
     const c = db.contacts.find(x => x.id === currentContactId); c.mmProfileIndex = db.settings.mmProfiles.length-1; 
     LocalDB.save(db); refreshMmProfileSelect(); loadMmProfileIntoUI(); 
 }
@@ -2408,7 +2560,17 @@ function deleteMmProfile() {
 }
 function autoSaveMmProfile() { 
     const db = LocalDB.get(); const idx = parseInt(document.getElementById('mmProfileSelect').value);
-    db.settings.mmProfiles[idx] = { name: db.settings.mmProfiles[idx].name, endpoint: document.getElementById('mmEndpoint').value, groupId: document.getElementById('mmGroupId').value.trim(), apiKey: document.getElementById('mmApiKey').value.trim(), voiceId: document.getElementById('mmVoiceId').value.trim() }; 
+    db.settings.mmProfiles[idx] = { 
+        name: db.settings.mmProfiles[idx].name, 
+        engine: document.getElementById('voiceProfileEngine').value,
+        endpoint: document.getElementById('mmEndpoint').value, 
+        groupId: document.getElementById('mmGroupId').value.trim(), 
+        apiKey: document.getElementById('mmApiKey').value.trim(), 
+        voiceId: document.getElementById('mmVoiceId').value.trim(),
+        localVoice: document.getElementById('roleLocalTtsVoice').value,
+        localRate: document.getElementById('roleLocalTtsRate').value,
+        localPitch: document.getElementById('roleLocalTtsPitch').value
+    }; 
     LocalDB.save(db); 
 }
 async function fetchMmVoices() { 
@@ -2441,28 +2603,53 @@ function simulateBreathingLight(text) {
 }
 
 async function playVoiceMessage(text, msgId, btnEl, isAutoCall = false) {
-    const s = LocalDB.get().settings;
-    const engine = s.chatTtsEngine || 'local';
+    const db = LocalDB.get();
+    const s = db.settings;
     
-    if (engine === 'mute') {
+    if (s.chatTtsEngine === 'mute') {
         if (isAutoCall) simulateBreathingLight(text); 
         return; 
     }
+
+    let profileToUse = s.mmProfiles[0] || { engine: "local", localRate: "1.0", localPitch: "1.0" };
+    if (currentContactId) {
+        const c = db.contacts.find(x => x.id === currentContactId);
+        if (c && c.mmProfileIndex !== undefined && c.mmProfileIndex < s.mmProfiles.length) {
+            profileToUse = s.mmProfiles[c.mmProfileIndex];
+        }
+    }
+    
+    const engine = profileToUse.engine || 'local';
+    if (engine === 'mute') {
+        if (isAutoCall) simulateBreathingLight(text);
+        return;
+    }
+    
     if (engine === 'minimax') {
-        await executeMiniMaxTTS(text, btnEl, isAutoCall);
+        await executeMiniMaxTTS(text, btnEl, isAutoCall, profileToUse);
     } else {
-        executeLocalTTS(text, btnEl, currentContactId ? LocalDB.get().contacts.find(x => x.id === currentContactId).targetLang : "", isAutoCall);
+        executeLocalTTS(text, btnEl, currentContactId ? db.contacts.find(x => x.id === currentContactId).targetLang : "", isAutoCall, profileToUse);
     }
 }
 
 async function playTTS(text, langHint = "") {
-    const s = LocalDB.get().settings;
-    if (s.vocabTtsEngine === 'mute') return; 
-    if (s.vocabTtsEngine === 'minimax') await executeMiniMaxTTS(text, null, false);
-    else executeLocalTTS(text, null, langHint, false);
+    const db = LocalDB.get();
+    const s = db.settings;
+    
+    let idx = s.vocabMmProfileIndex || 0;
+    let profileToUse = s.mmProfiles[idx] || { engine: "local", localRate: "1.0", localPitch: "1.0" };
+    
+    const engine = profileToUse.engine || 'local';
+    if (engine === 'mute') return;
+    
+    if (engine === 'minimax') {
+        await executeMiniMaxTTS(text, null, false, profileToUse);
+    } else {
+        executeLocalTTS(text, null, langHint, false, profileToUse);
+    }
 }
 
-function executeLocalTTS(text, btnEl, langHint = "", isAutoCall = false) {
+function executeLocalTTS(text, btnEl, langHint = "", isAutoCall = false, profileToUse = {}) {
     if (!('speechSynthesis' in window)) {
         if (!isAutoCall) alert("浏览器不支持本地 TTS 引擎");
         if (isAutoCall) simulateBreathingLight(text);
@@ -2477,6 +2664,18 @@ function executeLocalTTS(text, btnEl, langHint = "", isAutoCall = false) {
     const utterance = new SpeechSynthesisUtterance(text); const hint = langHint.toLowerCase();
     if (hint.includes("日")) utterance.lang = 'ja-JP'; else if (hint.includes("英")) utterance.lang = 'en-US'; else if (hint.includes("粤") || hint.includes("港")) utterance.lang = 'zh-HK'; else if (hint.includes("韩")) utterance.lang = 'ko-KR'; else if (hint.includes("法")) utterance.lang = 'fr-FR'; else if (hint.includes("德")) utterance.lang = 'de-DE'; else utterance.lang = 'zh-CN';
     
+    if (profileToUse.localRate) utterance.rate = parseFloat(profileToUse.localRate);
+    if (profileToUse.localPitch) utterance.pitch = parseFloat(profileToUse.localPitch);
+    
+    const voices = window.speechSynthesis.getVoices();
+    if (profileToUse.localVoice) {
+        const selectedVoice = voices.find(v => v.voiceURI === profileToUse.localVoice);
+        if (selectedVoice) utterance.voice = selectedVoice;
+    } else if (voices.length > 0) {
+        const matchingVoice = voices.find(v => v.lang.replace('_','-').toLowerCase().startsWith(utterance.lang.toLowerCase()));
+        if (matchingVoice) utterance.voice = matchingVoice;
+    }
+    
     utterance.onend = () => { 
         if(btnEl) btnEl.classList.remove('playing'); 
         document.getElementById('callScreen').classList.remove('speaking');
@@ -2489,15 +2688,7 @@ function executeLocalTTS(text, btnEl, langHint = "", isAutoCall = false) {
     window.speechSynthesis.speak(utterance); 
 }
 
-async function executeMiniMaxTTS(text, btnEl, isAutoCall = false) {
-    const db = LocalDB.get(); let profileToUse = db.settings.mmProfiles[0];
-    if (currentContactId) {
-        const c = db.contacts.find(x => x.id === currentContactId);
-        if (c && c.mmProfileIndex !== undefined && c.mmProfileIndex < db.settings.mmProfiles.length) {
-            profileToUse = db.settings.mmProfiles[c.mmProfileIndex];
-        }
-    }
-    
+async function executeMiniMaxTTS(text, btnEl, isAutoCall = false, profileToUse = {}) {
     if (!profileToUse || !profileToUse.groupId || !profileToUse.apiKey || !profileToUse.voiceId) {
         if (!isAutoCall) alert("专属语音配置不完整，请配置API Key！");
         if (isAutoCall) simulateBreathingLight(text);
@@ -2544,15 +2735,15 @@ async function executeMiniMaxTTS(text, btnEl, isAutoCall = false) {
     } catch(e) {
         if(btnEl) btnEl.classList.remove('playing');
         document.getElementById('callScreen').classList.remove('speaking');
-                if (!isAutoCall) alert("获取语音失败: " + e.message);
-                if (isAutoCall) { console.warn("MiniMax语音异常:", e.message); simulateBreathingLight(text); }
-            }
-        }
-        
+        if (!isAutoCall) alert("获取语音失败: " + e.message);
+        if (isAutoCall) { console.warn("MiniMax语音异常:", e.message); simulateBreathingLight(text); }
+    }
+}
+
         // ==========================================
         // ====== 版本更新公告配置 (每次更新修改这里) ======
         // ==========================================
-        const CURRENT_APP_VERSION = "3.3.8"; // 每次发布新版本，修改这个版本号
+        const CURRENT_APP_VERSION = "3.4.0"; // 每次发布新版本，修改这个版本号
         const UPDATE_CHANGELOG_HTML = `
             1. <b>通话部分更新</b>：现在可以决定打电话还是打视频啦!(不会真开你摄像头!)<br><br>
             2. <b>对话改进</b>：内心话和动作可以决定开关了(也可以决定语言,默认中文的话就不会那么痛苦了罢...)<br><br>
