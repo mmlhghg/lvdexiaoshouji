@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v3.3.7
+@name 驴的学习小手机 v3.3.8
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v3.3.7</title>
+<title>驴的学习小手机 v3.3.8</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -1103,7 +1103,9 @@ function renderChat(id) {
                     const voiceMatch = rawContent.match(/\[(?:语音|音声|Voice|Audio|录音):\s*(.*?)\]/i);
                     if (voiceMatch) {
                         let textToRead = voiceMatch[1].replace(/['"]/g, "\\'");
-                        lineHtml = dramaHtml + `<div class="media-content"><div class="media-audio-box" onclick="playVoiceMessage('${textToRead}', '${msg.id}', this)"><svg class="media-audio-icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> <span>0:0${Math.ceil((voiceMatch[1].length||10)/5)}</span></div><span class="media-tag">TRANSCRIPT</span><div class="media-transcript"><span class="sent-unit" data-txt="${rawContent.replace(/"/g, '&quot;')}">${tokensHtml}</span>${transHtml}</div></div>`;
+                        let secs = Math.ceil((voiceMatch[1].length||10)/5);
+                        let timeDisplay = Math.floor(secs/60) + ':' + String(secs%60).padStart(2, '0');
+                        lineHtml = dramaHtml + `<div class="media-content"><div class="media-audio-box" onclick="playVoiceMessage('${textToRead}', '${msg.id}', this)"><svg class="media-audio-icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> <span>${timeDisplay}</span></div><span class="media-tag">TRANSCRIPT</span><div class="media-transcript"><span class="sent-unit" data-txt="${rawContent.replace(/"/g, '&quot;')}">${tokensHtml}</span>${transHtml}</div></div>`;
                     }
                     else lineHtml = dramaHtml + `<div style="margin-bottom:4px;"><span class="sent-unit" data-txt="${rawContent.replace(/"/g, '&quot;')}">${tokensHtml}</span>${transHtml}</div>`;
                 }
@@ -1115,7 +1117,9 @@ function renderChat(id) {
                     const voiceMatch = rawContent.match(/\[(?:语音|音声|Voice|Audio|录音):\s*(.*?)\]/i);
                     if (voiceMatch) {
                         let textToRead = voiceMatch[1].replace(/['"]/g, "\\'");
-                        lineHtml = dramaHtml + `<div class="media-content"><div class="media-audio-box" onclick="playVoiceMessage('${textToRead}', '${msg.id}', this)"><svg class="media-audio-icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> <span>0:0${Math.ceil((voiceMatch[1].length||10)/5)}</span></div><span class="media-tag">TRANSCRIPT</span><div class="media-transcript"><span class="sent-unit" data-txt="${rawContent.replace(/"/g, '&quot;')}">${rawTextForDisplay}</span>${transHtml}</div></div>`;
+                        let secs = Math.ceil((voiceMatch[1].length||10)/5);
+                        let timeDisplay = Math.floor(secs/60) + ':' + String(secs%60).padStart(2, '0');
+                        lineHtml = dramaHtml + `<div class="media-content"><div class="media-audio-box" onclick="playVoiceMessage('${textToRead}', '${msg.id}', this)"><svg class="media-audio-icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> <span>${timeDisplay}</span></div><span class="media-tag">TRANSCRIPT</span><div class="media-transcript"><span class="sent-unit" data-txt="${rawContent.replace(/"/g, '&quot;')}">${rawTextForDisplay}</span>${transHtml}</div></div>`;
                     }
                     else lineHtml = dramaHtml + `<div style="margin-bottom:4px;"><span class="sent-unit" data-txt="${rawContent.replace(/"/g, '&quot;')}">${rawTextForDisplay}</span>${transHtml}</div>`;
                 }
@@ -2548,7 +2552,7 @@ async function executeMiniMaxTTS(text, btnEl, isAutoCall = false) {
         // ==========================================
         // ====== 版本更新公告配置 (每次更新修改这里) ======
         // ==========================================
-        const CURRENT_APP_VERSION = "3.3.7"; // 每次发布新版本，修改这个版本号
+        const CURRENT_APP_VERSION = "3.3.8"; // 每次发布新版本，修改这个版本号
         const UPDATE_CHANGELOG_HTML = `
             1. <b>通话部分更新</b>：现在可以决定打电话还是打视频啦!(不会真开你摄像头!)<br><br>
             2. <b>对话改进</b>：内心话和动作可以决定开关了(也可以决定语言,默认中文的话就不会那么痛苦了罢...)<br><br>
