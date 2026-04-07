@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v3.4.6
+@name 驴的学习小手机 v3.4.7
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v3.4.6</title>
+<title>驴的学习小手机 v3.4.7</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -552,8 +552,11 @@
                 <option value="false">关闭 (纯净对白模式，仅限输出台词)</option>
             </select>
             <div id="singleDramaLangContainer">
-                <span class="setting-label" style="color:var(--ios-orange);">剧本描写语言 (留空则与目标语言一致)</span>
-                <input type="text" id="currentRoleDramaLang" class="setting-input" placeholder="例如：中文">
+                <span class="setting-label" style="color:var(--ios-orange);">剧本描写语言 (动作/内心话)</span>
+                <select id="currentRoleDramaLang" class="setting-input" style="margin-bottom:8px;">
+                    <option value="中文">中文 (默认)</option>
+                    <option value="target">目标语言(角色设置)</option>
+                </select>
             </div>
             
             <span class="setting-label" style="margin-top:10px;">专属语音配置档 (跨角色通用)</span>
@@ -606,7 +609,11 @@
             <span class="setting-label">群聊名称</span><input type="text" id="currentGroupName" class="setting-input">
             <span class="setting-label">群交流主语言</span><input type="text" id="currentGroupLang" class="setting-input">
             <span class="setting-label" style="color:var(--ios-green);">气泡附带的翻译语言 (留空则读取全局母语)</span><input type="text" id="currentGroupTransLang" class="setting-input" placeholder="例如：中文" style="margin-bottom:8px;">
-            <span class="setting-label" style="color:var(--ios-orange);">剧本描写语言 (留空则与目标语言一致)</span><input type="text" id="currentGroupDramaLang" class="setting-input" placeholder="例如：中文">
+            <span class="setting-label" style="color:var(--ios-orange);">剧本描写语言 (动作/神态等)</span>
+            <select id="currentGroupDramaLang" class="setting-input" style="margin-bottom:8px;">
+                <option value="中文">中文 (默认)</option>
+                <option value="target">目标语言(角色设置)</option>
+            </select>
             
             <div style="background:#fafafa; border:1px solid #eee; border-radius:12px; padding:12px; margin-top:15px;">
                 <span class="setting-label" style="color:var(--ios-red);">核心群生态 (AI结合互动自动推演覆盖)</span>
@@ -991,11 +998,11 @@ function openChat(id) {
         const actionBtn2 = document.getElementById('reAnalyzeProfileBtn');
         if (latestContact.type === 'group') {
             document.getElementById('singleRoleSettingsArea').style.display = 'none'; document.getElementById('groupRoleSettingsArea').style.display = 'block';
-            document.getElementById('currentGroupName').value = latestContact.name; document.getElementById('currentGroupLang').value = latestContact.targetLang; document.getElementById('currentGroupTransLang').value = latestContact.transLang || ""; document.getElementById('currentGroupDramaLang').value = latestContact.dramaLang || ""; document.getElementById('currentGroupDynamics').value = latestContact.groupDynamics || ""; document.getElementById('currentGroupExtra').value = latestContact.groupExtra || "";
+            document.getElementById('currentGroupName').value = latestContact.name; document.getElementById('currentGroupLang').value = latestContact.targetLang; document.getElementById('currentGroupTransLang').value = latestContact.transLang || ""; document.getElementById('currentGroupDramaLang').value = latestContact.dramaLang === "target" ? "target" : "中文"; document.getElementById('currentGroupDynamics').value = latestContact.groupDynamics || ""; document.getElementById('currentGroupExtra').value = latestContact.groupExtra || "";
             actionBtn2.style.display = 'block'; actionBtn2.innerText = "结合近期互动推演群生态"; actionBtn2.onclick = reAnalyzeGroupDynamics;
         } else {
             document.getElementById('singleRoleSettingsArea').style.display = 'block'; document.getElementById('groupRoleSettingsArea').style.display = 'none';
-            document.getElementById('currentRoleName').value = latestContact.name || ""; document.getElementById('currentRoleLang').value = latestContact.targetLang || ""; document.getElementById('currentRoleTransLang').value = latestContact.transLang || ""; document.getElementById('currentRoleDramaLang').value = latestContact.dramaLang || ""; document.getElementById('currentRoleRelation').value = latestContact.relation || ""; document.getElementById('currentRolePrompt').value = latestContact.prompt || ""; document.getElementById('currentRoleExtra').value = latestContact.extraPrompt || "";
+            document.getElementById('currentRoleName').value = latestContact.name || ""; document.getElementById('currentRoleLang').value = latestContact.targetLang || ""; document.getElementById('currentRoleTransLang').value = latestContact.transLang || ""; document.getElementById('currentRoleDramaLang').value = latestContact.dramaLang === "target" ? "target" : "中文"; document.getElementById('currentRoleRelation').value = latestContact.relation || ""; document.getElementById('currentRolePrompt').value = latestContact.prompt || ""; document.getElementById('currentRoleExtra').value = latestContact.extraPrompt || "";
             document.getElementById('currentRoleDramaMode').value = latestContact.dramaMode !== undefined ? latestContact.dramaMode : "true";
             toggleDramaLangUI(document.getElementById('currentRoleDramaMode').value);
             refreshMmProfileSelect();
@@ -1360,7 +1367,10 @@ async function userInitiateCall(isVideo) {
     const db = LocalDB.get(); const contact = db.contacts.find(c => c.id === currentContactId);
     showSysStatus("正在呼叫..."); const api = db.settings.apiProfiles[db.settings.currentProfileIndex]; 
     const bubbleTransLang = (contact.transLang || "").trim() ? contact.transLang.trim() : (db.settings.translationLang || "中文");
-    const dLang = (contact.dramaLang || "").trim() ? contact.dramaLang.trim() : contact.targetLang;
+    const isDramaZh = (contact.dramaLang !== "target");
+    const dLang = isDramaZh ? "中文" : contact.targetLang;
+    const jsonAction = isDramaZh ? "(【必须用中文】客观动作/听觉环境描写。绝不能写台词！)" : "(【统一用目标语言】客观动作/听觉环境描写。绝不能写台词！)";
+    const jsonSentence = isDramaZh ? `(【必须用${contact.targetLang}】刚刚reply里的那句话，千万不要混入中文)` : "(刚刚reply里的那句话，必须是纯文本)";
     
     const validHistory = contact.history.filter(m => !(m.rawObj && m.rawObj.isErrorMsg));
     const lastMsgIsUser = validHistory.length > 0 && validHistory[validHistory.length - 1].type === 'sent';
@@ -1378,7 +1388,7 @@ ${cameraPrompt}
 ${unrepliedPrompt}近期记录：\n${recentChat}\n
 【格式铁律】"action"字段必须且只能用[${dLang}]编写！"translation"用[${bubbleTransLang}]编写！
 【警告】正在通电话，台词(reply和sentence)中绝对不能带[语音:]或[图片:]标签！
-请严格输出JSON格式：{"accept": true或false, "ai_camera": true或false, "reply": "接通后你说的第一句话 / 拒接理由", "bubbles": [{"action":"(可选)客观动作/听觉环境描写。绝对禁止写台词！【人称铁律：必须用角色名或他/她描写你自己，把用户称为'你'。严禁出现'你笑了'来代表自己笑！】","sentence":"刚刚reply里的那句话(必须是纯文本)","translation":"翻译"}]}`;
+请严格输出JSON格式：{"accept": true或false, "ai_camera": true或false, "reply": "接通后你说的第一句话 / 拒接理由", "bubbles": [{"action":"${jsonAction}","sentence":"${jsonSentence}","translation":"翻译"}]}`;
     
     const messages = [{ role: "system", content: contact.prompt + "\n" + (contact.mbtiData||"") }, { role: "system", content: prompt }];
 
@@ -1576,7 +1586,10 @@ async function handleCallSend(isTimePass = false) {
     if (!inCall || !activeCallContactId) return; showSysStatus("正在回应通话..."); 
     const db = LocalDB.get(); const contact = db.contacts.find(c => c.id === activeCallContactId); const api = db.settings.apiProfiles[db.settings.currentProfileIndex]; 
     const bubbleTransLang = (contact.transLang || "").trim() ? contact.transLang.trim() : (db.settings.translationLang || "中文");
-    const dLang = (contact.dramaLang || "").trim() ? contact.dramaLang.trim() : contact.targetLang;
+    const isDramaZh = (contact.dramaLang !== "target");
+    const dLang = isDramaZh ? "中文" : contact.targetLang;
+    const jsonAction = isDramaZh ? "(【必须用中文】客观动作描写。绝对禁止写台词！若闭麦对方听不见)" : "(【统一用目标语言】客观动作描写。绝对禁止写台词！若闭麦对方听不见)";
+    const jsonSentence = isDramaZh ? `(【必须用${contact.targetLang}】对着麦克风说出口的话，千万不要混入中文。若闭麦留空)` : "(对着麦克风说出口的话，若闭麦留空)";
     const timeStr = new Date().toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit' });
     
     const callContextPrompt = `\n【当前场景：实时双向通话中】
@@ -1595,8 +1608,8 @@ async function handleCallSend(isTimePass = false) {
   "text_messages": ["(可选)通话时给对方发出的微信文字/图片消息"],
   "bubbles": [
     {
-      "action":"(可选)客观动作描写。绝对禁止写台词！【人称铁律：必须用角色名或他/她描写你自己，把用户称为'你'。严禁出现'你笑了'来代表自己笑！】(若闭麦对方听不见)",
-      "sentence":"对着麦克风说出口的话(必须是纯文本，若闭麦必须留空)",
+      "action":"${jsonAction}",
+      "sentence":"${jsonSentence}",
       "translation":"[${bubbleTransLang}]翻译"
     }
   ]
@@ -1694,7 +1707,12 @@ async function handleSend(triggerAI, isReroll = false) {
     
     const freshDb = LocalDB.get(); const freshContact = freshDb.contacts.find(c => c.id === targetContactId);
     const bubbleTransLang = (freshContact.transLang || "").trim() ? freshContact.transLang.trim() : globalTransLang;
-    const dLang = (freshContact.dramaLang || "").trim() ? freshContact.dramaLang.trim() : freshContact.targetLang;
+    
+    const isDramaZh = (freshContact.dramaLang !== "target");
+    const dLang = isDramaZh ? "中文" : freshContact.targetLang;
+    const jsonAction = isDramaZh ? "(【必须用中文】客观动作描写)" : "(【统一用目标语言】客观动作描写)";
+    const jsonThought = isDramaZh ? "(【必须用中文】第一人称内心戏)" : "(【统一用目标语言】第一人称内心戏)";
+    const jsonSentence = isDramaZh ? `(【必须用${freshContact.targetLang}】说出口的话，千万不要混入中文)` : "(说出口的话)";
     
     const now = new Date(); const timeStr = now.toLocaleString('zh-CN', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
     const limit = parseInt(freshContact.historyLimit) || 10; 
@@ -1707,7 +1725,10 @@ async function handleSend(triggerAI, isReroll = false) {
     let globalDirectorPrompt = otherNamesInfo ? `\n\n【上帝视角与后台并行世界】\n当前世界中还存在以下后台角色(ID与信息映射)，且时间是同步流动的：\n${otherNamesInfo}\n\n作为总导演，请评估这些后台角色当前的状态。结合时间差和人设决定他们是否会突然主动找用户。如果你认为某人应该插话，请返回该角色的 \`character_id\` 在 JSON 的 'background_interruptions' 数组中。如果大家都安静，就返回 []。` : "";
 
     let formatInstruction = ""; let modePrompt = ""; let crossChatEcho = "";
-    const transRule = `\n【语言规范】你的台词(sentence)必须使用[${freshContact.targetLang}]输出！而客观动作神态描写(action)和内心独白(inner_thought)必须使用[${dLang}]输出！'translation'必须使用[${bubbleTransLang}]！`;
+    const transRule = isDramaZh 
+        ? `\n【语言隔离铁律】因为用户看不懂外语的剧本描写，所以你的action(客观动作神态)和inner_thought(内心独白)必须且只能使用[中文]输出！但是，你嘴里说出口的台词sentence必须使用[${freshContact.targetLang}]！'translation'必须使用[${bubbleTransLang}]！`
+        : `\n【全外语沉浸模式】为了保持绝对的语境沉浸，你的action(客观动作)、inner_thought(内心独白)以及嘴里说出口的sentence(台词)，请全部统一使用[${freshContact.targetLang}]输出！'translation'必须使用[${bubbleTransLang}]！`;
+        
     const realityFilter = `\n【设定现实化感知】\n请将一切极端设定转化为现代法治社会中的真实人类行为(如查岗、生闷气)。\n【动态情绪演进】若观察到用户连续敷衍/沉默，必须展现出层层递进的情绪变化，拒绝复读。\n【格式排版铁律】绝对禁止在台词前加自己的名字或冒号(如"张三:")！绝对禁止输出类似的角色名前缀，必须直接输出说话内容！非常鼓励使用 \`[图片: 描述]\` 或 \`[语音: 内容]\` 标签来丰富互动体验。\n【系统级事件调用】除了发消息，你还可以在 JSON 的 \`system_event\` 字段输出系统级的客观事件，用于模拟具体的UI操作(例如：向对方发送了实时定位、向对方转账了520元)，用户屏幕会浮现这条客观事实。同样的，如果聊天记录中对方发来了系统事件，请将其视为绝对真实的客观事实并做出合理反应。`;
     
     const isOffline = (freshContact.mode === 'offline');
@@ -1731,7 +1752,7 @@ async function handleSend(triggerAI, isReroll = false) {
         formatInstruction = `\n【返回格式要求】必须输出纯JSON：
 {
   "group_messages": [
-    {"speaker_id": "成员对应的ID字符串", "bubbles": [{"action": "动作描写", "sentence": "纯发言/图片/语音", "translation": "翻译"}]},
+    {"speaker_id": "成员对应的ID字符串", "bubbles": [{"action": "${jsonAction}", "sentence": "${jsonSentence}", "translation": "翻译"}]},
     {"speaker_id": "成员ID", "bubbles": [{"sentence": "第二句话", "translation": "翻译"}]}
   ],
   "system_event": "可选的系统级操作，用于模拟具体UI功能(如: 向群内发送了定位)",
@@ -1760,7 +1781,7 @@ async function handleSend(triggerAI, isReroll = false) {
 
         if (isOffline) {
             modePrompt = `\n【线下长文互动模式】当前处于线下现实剧情扮演模式。输出字数约在【${wordCount}字】左右的高质量长文。` + offlineScenario;
-            formatInstruction = `\n【返回格式】纯JSON: {"bubbles": [{"action": "动作描写", "inner_thought": "内心戏", "sentence": "说出口的内容", "translation": "完整翻译"}]}` + dramaConstraint;
+            formatInstruction = `\n【返回格式】纯JSON: {"bubbles": [{"action": "${jsonAction}", "inner_thought": "${jsonThought}", "sentence": "${jsonSentence}", "translation": "(完整翻译)"}]}` + dramaConstraint;
         } else {
             modePrompt = `\n【网聊交互逻辑】
 1. 【多气泡连发】现代人聊天喜欢拆分发。你每次的回复，可以拆分成 3 到 5 条连续消息（数组元素）发送！
@@ -1770,7 +1791,7 @@ async function handleSend(triggerAI, isReroll = false) {
             formatInstruction = `\n【回复格式要求】纯JSON结构！：
 {
   "bubbles": [
-    {"action": "动作描写", "inner_thought": "内心戏", "sentence": "说出的话", "translation": "翻译"},
+    {"action": "${jsonAction}", "inner_thought": "${jsonThought}", "sentence": "${jsonSentence}", "translation": "翻译"},
     {"sentence": "[语音: 帮我带份外卖]", "translation": "翻译"}
   ],
   "system_event": "可选的系统级操作，用于模拟具体UI功能(如: 向对方发送了定位)",
@@ -2887,7 +2908,7 @@ async function executeMiniMaxTTS(text, btnEl, isAutoCall = false, profileToUse =
         // ==========================================
         // ====== 版本更新公告配置 (每次更新修改这里) ======
         // ==========================================
-        const CURRENT_APP_VERSION = "3.4.6"; // 每次发布新版本，修改这个版本号
+        const CURRENT_APP_VERSION = "3.4.7"; // 每次发布新版本，修改这个版本号
         const UPDATE_CHANGELOG_HTML = `
             1. <b>通话部分更新</b>：现在可以决定打电话还是打视频啦!(不会真开你摄像头!)<br><br>
             2. <b>对话改进</b>：内心话和动作可以决定开关了(也可以决定语言,默认中文的话就不会那么痛苦了罢...)<br><br>
