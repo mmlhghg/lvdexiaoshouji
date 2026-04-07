@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v3.3.4
+@name 驴的学习小手机 v3.3.6
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v3.3.4</title>
+<title>驴的学习小手机 v3.3.6</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -47,7 +47,7 @@
   .contact-list { background: #fff; overflow-x: hidden; }
   .contact-item-inner { background: #fff; position: relative; z-index: 1; display: flex; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid var(--border-color); cursor: pointer; transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1); }
   .contact-item-inner.swiping { transition: none; }
-  .contact-item-inner.open-right { transform: translateX(-80px); }
+  .contact-item-inner.open-right { transform: translateX(-140px); }
   .contact-item-inner:active { background: #f5f5f5; }
   .c-avatar { width: 48px; height: 48px; border-radius: 50%; background: #e1e1e1; display: flex; justify-content: center; align-items: center; margin-right: 12px; font-size: 20px; flex-shrink: 0; font-weight: 600; color: #555;}
   .c-avatar.group-avatar { background: #d0e8ff; color: var(--ios-blue); font-size: 16px;}
@@ -512,7 +512,7 @@
 
 <div class="ios-sheet" id="apiSettingSheet"><div class="drag-area-top" onclick="closeApiSettingSheet()"><div class="drag-indicator"></div></div><div class="sheet-scroll"><h2 style="text-align:center; margin-bottom:20px;">API 配置中心</h2><div class="example-box"><span class="setting-label">配置档管理</span><div class="profile-row"><select id="apiProfileSelect" class="profile-select" onchange="switchApiProfile()"></select><button class="icon-btn" onclick="renameCurrentProfile()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button><button class="icon-btn" style="color:var(--ios-red);" onclick="deleteCurrentProfile()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></div><button class="ios-action-btn" style="height:40px; font-size:15px; background:#fff; border:1px solid var(--ios-blue); color:var(--ios-blue); margin-bottom:20px;" onclick="addNewProfile()">+ 新建配置档</button><hr style="border:none; border-top:1px solid #eee; margin-bottom:20px;"><span class="setting-label">API Base URL</span><input type="text" id="apiBaseUrl" class="setting-input" oninput="autoSaveApiSettings()"><span class="setting-label">API Key</span><input type="password" id="apiKey" class="setting-input" oninput="autoSaveApiSettings()"><span class="setting-label">模型 (Model)</span><select id="fetchedModelsSelect" class="setting-input" style="display:none; color:var(--ios-blue); font-weight:600;" onchange="document.getElementById('apiModel').value=this.value; autoSaveApiSettings();"></select><div style="display: flex; gap: 8px; margin-bottom: 20px;"><input type="text" id="apiModel" class="setting-input" style="margin-bottom:0;" oninput="autoSaveApiSettings()"><button class="ios-action-btn" style="width:auto; padding:0 15px; height:44px; font-size:14px;" onclick="fetchModels()">拉取模型</button></div><span class="setting-label">温度 (Temperature): <span id="tempValue">0.7</span></span><input type="range" id="apiTemp" min="0" max="2" step="0.1" style="width:100%; margin-bottom:20px;" oninput="document.getElementById('tempValue').innerText = this.value; autoSaveApiSettings()"><hr style="border:none; border-top:1px solid #eee; margin-bottom:20px;"><span class="setting-label" style="color:var(--ios-orange);">对话/通话 语音发音引擎</span><select id="chatTtsEngine" class="setting-input" onchange="autoSaveApiSettings()"><option value="local">本地浏览器 TTS (支持有限)</option><option value="minimax">MiniMax</option><option value="mute">关闭语音</option></select><span class="setting-label" style="color:var(--ios-blue);">生词本字典 语音发音引擎</span><select id="vocabTtsEngine" class="setting-input" style="margin-bottom:0;" onchange="autoSaveApiSettings()"><option value="local">本地浏览器 TTS (支持有限)</option><option value="minimax">MiniMax(需配密钥)</option><option value="mute">关闭语音</option></select></div><button class="ios-action-btn" style="background:var(--ios-orange); margin-bottom:12px;" onclick="testApiConnection()">发送测试请求</button><button class="ios-action-btn" onclick="closeApiSettingSheet()">完成</button></div></div>
 
-<div class="ios-sheet" id="addFriendSheet"><div class="drag-area-top" onclick="closeAddFriendSheet()"><div class="drag-indicator"></div></div><div class="sheet-scroll"><h2 style="text-align:center; margin-bottom:20px;">添加新角色</h2><div class="example-box"><span class="setting-label">角色昵称</span><input type="text" id="newFriendName" class="setting-input"><span class="setting-label">目标交流语言</span><input type="text" id="newFriendLang" class="setting-input" placeholder="例如：英语"><span class="setting-label" style="color:var(--ios-green);">气泡附带的翻译语言 (留空则读取全局母语)</span><input type="text" id="newFriendTransLang" class="setting-input" placeholder="例如：中文"><span class="setting-label">TA是你的谁？(关系)</span><input type="text" id="newFriendRelation" class="setting-input" placeholder="例如：青梅竹马、死对头"><span class="setting-label" style="color:var(--ios-red);">核心设定 (包含年龄/公开身份，AI将侧写覆盖)</span><textarea id="newFriendPrompt" class="setting-textarea" placeholder="例如：xx岁，性格xx..."></textarea><span class="setting-label" style="color:var(--ios-blue);">额外补充 (口癖/禁忌)</span><textarea id="newFriendExtra" class="setting-textarea" placeholder="例如：说话必须带口癖..."></textarea></div><button class="ios-action-btn" onclick="saveNewFriend()">分析并添加</button></div></div>
+<div class="ios-sheet" id="addFriendSheet"><div class="drag-area-top" onclick="closeAddFriendSheet()"><div class="drag-indicator"></div></div><div class="sheet-scroll"><h2 style="text-align:center; margin-bottom:20px;">添加新角色</h2><div class="example-box"><span class="setting-label">角色昵称</span><input type="text" id="newFriendName" class="setting-input"><span class="setting-label">目标交流语言</span><input type="text" id="newFriendLang" class="setting-input" placeholder="例如：英语"><span class="setting-label" style="color:var(--ios-green);">气泡附带的翻译语言 (留空则读取全局母语)</span><input type="text" id="newFriendTransLang" class="setting-input" placeholder="例如：中文"><span class="setting-label">TA是你的谁？(关系)</span><input type="text" id="newFriendRelation" class="setting-input" placeholder="例如：青梅竹马、死对头"><span class="setting-label" style="color:var(--ios-red);">核心设定 (包含年龄/公开身份，AI将侧写覆盖)</span><textarea id="newFriendPrompt" class="setting-textarea" placeholder="例如：xx岁，性格xx..."></textarea><span class="setting-label" style="color:var(--ios-blue);">额外补充 (这里不会被覆盖,可手动修改)</span><textarea id="newFriendExtra" class="setting-textarea" placeholder="例如：说话必须带口癖..."></textarea></div><button class="ios-action-btn" onclick="saveNewFriend()">分析并添加</button></div></div>
 
 <div class="ios-sheet" id="roleSheet"><div class="drag-area-top" onclick="closeRoleSheet()"><div class="drag-indicator"></div></div><div class="sheet-scroll"><h2 style="text-align:center; margin-bottom:20px;" id="roleSheetTitle">角色/群聊 设定</h2>
     <div class="example-box">
@@ -540,8 +540,8 @@
             <span class="setting-label">目标交流语言</span><input type="text" id="currentRoleLang" class="setting-input">
             <span class="setting-label" style="color:var(--ios-green);">气泡附带的翻译语言 (留空则读取全局母语)</span><input type="text" id="currentRoleTransLang" class="setting-input" placeholder="例如：中文">
             <span class="setting-label">TA是你的谁？(关系)</span><input type="text" id="currentRoleRelation" class="setting-input">
-            <span class="setting-label" style="color:var(--ios-red);">核心设定 (包含年龄/公开身份等客观情况)</span><textarea class="setting-textarea" id="currentRolePrompt" style="height: 250px;"></textarea>
-            <span class="setting-label" style="color:var(--ios-blue);">额外补充 (口癖等)</span><textarea class="setting-textarea" id="currentRoleExtra"></textarea>
+            <span class="setting-label" style="color:var(--ios-red);">核心设定 (包含年龄/公开身份，AI将侧写覆盖)</span><textarea class="setting-textarea" id="currentRolePrompt" style="height: 250px;"></textarea>
+            <span class="setting-label" style="color:var(--ios-blue);">额外补充 (这里不会被覆盖,可手动修改)</span><textarea class="setting-textarea" id="currentRoleExtra"></textarea>
             
             <span class="setting-label" style="margin-top:15px; color:var(--ios-orange);">剧本描写模式 (动作/内心话)</span>
             <select id="currentRoleDramaMode" class="setting-input" style="margin-bottom:8px;" onchange="toggleDramaLangUI(this.value)">
@@ -645,7 +645,7 @@ const msgInput = document.getElementById('msgInput'); const tabBar = document.ge
 msgInput.addEventListener('focus', () => { tabBar.style.display = 'none'; setTimeout(() => { window.scrollTo(0, 0); document.body.scrollTop = 0; const container = document.getElementById('chatHistoryContainer'); container.scrollTop = container.scrollHeight; }, 100); });
 msgInput.addEventListener('blur', () => { window.scrollTo(0, 0); if(document.getElementById('page-chat').classList.contains('active')) tabBar.style.display = 'flex'; });
 document.getElementById('callInput').addEventListener('focus', () => { setTimeout(() => { window.scrollTo(0, 0); document.body.scrollTop = 0; const container = document.getElementById('callLyricsContainer'); container.scrollTop = container.scrollHeight; }, 100); });
-document.addEventListener('touchmove', function(e) { if (!e.target.closest('.scroll-content') && !e.target.closest('.chat-history') && !e.target.closest('.sheet-scroll') && !e.target.closest('.fc-scroll-area') && !e.target.closest('.input-box') && !e.target.closest('.setting-textarea') && !e.target.closest('.call-lyrics-container') && !e.target.closest('.call-input-box')) e.preventDefault(); }, { passive: false });
+document.addEventListener('touchmove', function(e) { if (!e.target.closest('.scroll-content') && !e.target.closest('.chat-history') && !e.target.closest('.sheet-scroll') && !e.target.closest('.fc-scroll-area') && !e.target.closest('.input-box') && !e.target.closest('.setting-textarea') && !e.target.closest('.call-lyrics-container') && !e.target.closest('.call-input-box') && !e.target.closest('#changelogContent') && !e.target.closest('#groupMembersList')) e.preventDefault(); }, { passive: false });
 
 let currentWordContextForBind = null; let currentWordMessageId = null; let currentWordInCallIndex = null; 
 
@@ -675,6 +675,10 @@ function showSysStatus(msg, isTyping = false) {
         bar.querySelector('.sys-msg').innerText = donkeyMsgs[Math.floor(Math.random() * donkeyMsgs.length)];
         if(statusTimer) clearInterval(statusTimer); statusTimer = setInterval(() => { bar.querySelector('.sys-msg').innerText = donkeyMsgs[Math.floor(Math.random() * donkeyMsgs.length)]; }, 5000); 
     } else bar.querySelector('.sys-msg').innerText = msg;
+    
+    if (document.getElementById('page-chat').classList.contains('active') && currentContactId && msg === "思考回复中...") {
+        document.getElementById('topTitle').innerText = "对方正在输入中...";
+    }
 }
 function hideSysStatus() { 
     const bar = document.getElementById('sysStatusBar'); bar.classList.remove('show'); 
@@ -766,6 +770,8 @@ const LocalDB = {
             const d = JSON.parse(localStorage.getItem(DB_KEY)); let needsSave = false;
             if(!d.settings.worldbookProfiles) { d.settings.worldbookProfiles = [{name: "默认世界书", prompt: d.settings.globalPrompt || ""}]; d.settings.currentWorldbookIndex = 0; needsSave = true; }
             if(!d.settings.mmProfiles) { d.settings.mmProfiles = [{...defaultMmProfile}]; needsSave = true; }
+            if(!d.settings.offlineProfiles) { d.settings.offlineProfiles = [{name: "默认场景", prompt: ""}]; needsSave = true; }
+            if(d.settings.currentOfflineIndex === undefined) { d.settings.currentOfflineIndex = 0; needsSave = true; }
             if(d.settings.chatTtsEngine === undefined) { d.settings.chatTtsEngine = "local"; needsSave = true; }
             if(d.settings.vocabTtsEngine === undefined) { d.settings.vocabTtsEngine = "local"; needsSave = true; }
             d.contacts.forEach(c => {
@@ -877,13 +883,18 @@ function saveNewGroup() {
 
 function renderContactList() {
     const c = document.getElementById('contactListContainer'); c.innerHTML = '';
-    const contacts = LocalDB.get().contacts.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+    const contacts = LocalDB.get().contacts.sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return (b.updatedAt || 0) - (a.updatedAt || 0);
+    });
     contacts.forEach(item => {
         const row = document.createElement('div'); row.className = 'swipe-row';
         const isGroup = item.type === 'group'; const avatarClass = isGroup ? "c-avatar group-avatar" : "c-avatar"; const titleHtml = isGroup ? `${item.name} <span class="group-tag">群聊</span>` : item.name;
         const unreadHtml = item.unreadCount > 0 ? `<div class="unread-badge">${item.unreadCount}</div>` : '';
-        row.innerHTML = `<div class="swipe-bg-layer"><div style="flex:1"></div><div class="bg-action bg-right-only" onclick="deleteContactBtn('${item.id}', event)">删 除</div></div>
-            <div class="contact-item-inner" data-id="${item.id}">
+        const pinBg = item.isPinned ? '#8E8E93' : 'var(--ios-blue)';
+        row.innerHTML = `<div class="swipe-bg-layer"><div style="flex:1"></div><div style="display:flex;"><div class="bg-action" style="background-color: ${pinBg}; justify-content: center; width: 70px;" onclick="togglePinContact('${item.id}', event)">${item.isPinned ? '取消置顶' : '置顶'}</div><div class="bg-action" style="background-color: var(--ios-red); justify-content: center; width: 70px;" onclick="deleteContactBtn('${item.id}', event)">删 除</div></div></div>
+            <div class="contact-item-inner" data-id="${item.id}" style="${item.isPinned ? 'background-color: #FAFAFC;' : ''}">
                 <div class="${avatarClass}">${item.avatar}</div>
                 <div class="c-info"><div class="c-name">${titleHtml}</div><div class="c-preview">${item.lastMsg}</div></div>
                 <div class="c-time-area"><div class="c-time">${formatRelativeTime(item.updatedAt, false) || ''}</div>${unreadHtml}</div>
@@ -893,13 +904,19 @@ function renderContactList() {
     initContactSwipe();
 }
 window.deleteContactBtn = function(id, e) { e.stopPropagation(); if(confirm("确定删除该记录吗？")) { LocalDB.deleteContact(id); renderContactList(); } }
+window.togglePinContact = function(id, e) { 
+    e.stopPropagation(); 
+    const db = LocalDB.get(); 
+    const c = db.contacts.find(x => x.id === id); 
+    if(c) { c.isPinned = !c.isPinned; LocalDB.save(db); renderContactList(); } 
+}
 
 function initContactSwipe() {
     const items = document.querySelectorAll('.contact-item-inner'); let startX = 0, currentX = 0, isSwiping = false, isMoved = false;
     items.forEach(item => {
         item.addEventListener('touchstart', e => { document.querySelectorAll('.contact-item-inner.open-right').forEach(el => { if (el !== item) { el.style.transform = `translateX(0)`; el.classList.remove('open-right'); } }); startX = e.touches[0].clientX; currentX = startX; isSwiping = true; isMoved = false; item.classList.add('swiping'); }, {passive: true});
-        item.addEventListener('touchmove', e => { if(!isSwiping) return; currentX = e.touches[0].clientX; let diff = currentX - startX; if(Math.abs(diff) > 10) isMoved = true; if (diff > 0) diff = diff * 0.15; if (diff < -80) diff = -80 + (diff + 80) * 0.15; item.style.transform = `translateX(${diff}px)`; }, {passive: true});
-        item.addEventListener('touchend', e => { isSwiping = false; item.classList.remove('swiping'); if(!isMoved) return; let diff = currentX - startX; if (diff < -40) { item.style.transform = ''; item.classList.add('open-right'); } else { item.style.transform = `translateX(0)`; item.classList.remove('open-right'); } });
+        item.addEventListener('touchmove', e => { if(!isSwiping) return; currentX = e.touches[0].clientX; let diff = currentX - startX; if(Math.abs(diff) > 10) isMoved = true; if (diff > 0) diff = diff * 0.15; if (diff < -140) diff = -140 + (diff + 140) * 0.15; item.style.transform = `translateX(${diff}px)`; }, {passive: true});
+        item.addEventListener('touchend', e => { isSwiping = false; item.classList.remove('swiping'); if(!isMoved) return; let diff = currentX - startX; if (diff < -60) { item.style.transform = ''; item.classList.add('open-right'); } else { item.style.transform = `translateX(0)`; item.classList.remove('open-right'); } });
         item.addEventListener('click', e => { if(isMoved || item.classList.contains('open-right')) { item.style.transform = `translateX(0)`; item.classList.remove('open-right'); e.preventDefault(); e.stopPropagation(); return; } openChat(item.getAttribute('data-id')); });
     });
 }
@@ -918,7 +935,7 @@ function openChat(id) {
     
     hRight.style.visibility = 'visible'; hRight.innerHTML = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`; 
     hRight.onclick = () => { 
-        const latestContact = LocalDB.get().contacts.find(x => x.id === currentContactId); document.getElementById('roleSheetTitle').innerText = latestContact.name + " 设定"; 
+        const latestContact = LocalDB.get().contacts.find(x => x.id === currentContactId); document.getElementById('roleSheetTitle').innerText = "角色/群聊 设定"; 
         document.getElementById('currentRoleMode').value = latestContact.mode || 'online'; document.getElementById('currentOfflineWordCount').value = latestContact.offlineWordCount || "1000-2000";
         toggleRoleModeUI(); refreshOfflineProfileSelect();
         const actionBtn2 = document.getElementById('reAnalyzeProfileBtn');
@@ -1569,7 +1586,7 @@ async function handleSend(triggerAI, isReroll = false) {
     
     const isOffline = (freshContact.mode === 'offline');
     const wordCount = freshContact.offlineWordCount || "1000-2000";
-    const offlineScenario = freshContact.offlineProfiles ? `\n【当前所处现实场景】${freshContact.offlineProfiles[freshContact.currentOfflineIndex]?.prompt || ""}` : "";
+    const offlineScenario = freshDb.settings.offlineProfiles ? `\n【当前所处现实场景】${freshDb.settings.offlineProfiles[freshDb.settings.currentOfflineIndex]?.prompt || ""}` : "";
 
     let dramaConstraint = freshContact.dramaMode === "false" 
         ? "\n【纯净对白模式】绝对禁止输出任何 action 和 inner_thought，只允许在 sentence 里输出对白台词！" 
@@ -2189,12 +2206,12 @@ ${c.extraPrompt || '无'}`;
 
 function toggleRoleModeUI() { const mode = document.getElementById('currentRoleMode').value; const container = document.getElementById('offlineScenarioContainer'); if (mode === 'offline') container.style.display = 'block'; else container.style.display = 'none'; }
 function toggleDramaLangUI(modeValue) { const container = document.getElementById('singleDramaLangContainer'); if (container) container.style.display = (modeValue === 'false') ? 'none' : 'block'; }
-function refreshOfflineProfileSelect() { const c = LocalDB.get().contacts.find(x => x.id === currentContactId); if(!c) return; const sel = document.getElementById('offlineProfileSelect'); sel.innerHTML=''; c.offlineProfiles.forEach((p,i)=>{ const o=document.createElement('option'); o.value=i; o.text=p.name; sel.appendChild(o); }); sel.value=c.currentOfflineIndex; document.getElementById('offlineScenarioPrompt').value = c.offlineProfiles[c.currentOfflineIndex].prompt; }
-function switchOfflineProfile() { const db = LocalDB.get(); const c = db.contacts.find(x => x.id === currentContactId); c.currentOfflineIndex = parseInt(document.getElementById('offlineProfileSelect').value); LocalDB.save(db); refreshOfflineProfileSelect(); }
-function addNewOfflineProfile() { const db = LocalDB.get(); const c = db.contacts.find(x => x.id === currentContactId); c.offlineProfiles.push({ name: `新场景 ${c.offlineProfiles.length+1}`, prompt:"" }); c.currentOfflineIndex = c.offlineProfiles.length-1; LocalDB.save(db); refreshOfflineProfileSelect(); }
-function renameOfflineProfile() { const n = prompt("新场景名称:"); if(n){ const db = LocalDB.get(); const c = db.contacts.find(x => x.id === currentContactId); c.offlineProfiles[c.currentOfflineIndex].name = n; LocalDB.save(db); refreshOfflineProfileSelect(); } }
-function deleteOfflineProfile() { const db = LocalDB.get(); const c = db.contacts.find(x => x.id === currentContactId); if(c.offlineProfiles.length <= 1) return alert("保留至少一个场景"); if(confirm("删除此场景？")){ c.offlineProfiles.splice(c.currentOfflineIndex, 1); c.currentOfflineIndex = 0; LocalDB.save(db); refreshOfflineProfileSelect(); } }
-function autoSaveOfflineProfile() { const db = LocalDB.get(); const c = db.contacts.find(x => x.id === currentContactId); c.offlineProfiles[c.currentOfflineIndex].prompt = document.getElementById('offlineScenarioPrompt').value; LocalDB.save(db); }
+function refreshOfflineProfileSelect() { const s = LocalDB.get().settings; const sel = document.getElementById('offlineProfileSelect'); sel.innerHTML=''; s.offlineProfiles.forEach((p,i)=>{ const o=document.createElement('option'); o.value=i; o.text=p.name; sel.appendChild(o); }); sel.value=s.currentOfflineIndex; document.getElementById('offlineScenarioPrompt').value = s.offlineProfiles[s.currentOfflineIndex].prompt; }
+function switchOfflineProfile() { const db = LocalDB.get(); db.settings.currentOfflineIndex = parseInt(document.getElementById('offlineProfileSelect').value); LocalDB.save(db); refreshOfflineProfileSelect(); }
+function addNewOfflineProfile() { const db = LocalDB.get(); db.settings.offlineProfiles.push({ name: `新场景 ${db.settings.offlineProfiles.length+1}`, prompt:"" }); db.settings.currentOfflineIndex = db.settings.offlineProfiles.length-1; LocalDB.save(db); refreshOfflineProfileSelect(); }
+function renameOfflineProfile() { const n = prompt("新场景名称:"); if(n){ const db = LocalDB.get(); db.settings.offlineProfiles[db.settings.currentOfflineIndex].name = n; LocalDB.save(db); refreshOfflineProfileSelect(); } }
+function deleteOfflineProfile() { const db = LocalDB.get(); if(db.settings.offlineProfiles.length <= 1) return alert("保留至少一个场景"); if(confirm("删除此场景？")){ db.settings.offlineProfiles.splice(db.settings.currentOfflineIndex, 1); db.settings.currentOfflineIndex = 0; LocalDB.save(db); refreshOfflineProfileSelect(); } }
+function autoSaveOfflineProfile() { const db = LocalDB.get(); db.settings.offlineProfiles[db.settings.currentOfflineIndex].prompt = document.getElementById('offlineScenarioPrompt').value; LocalDB.save(db); }
 function autoSaveOfflineWordCount() { const db = LocalDB.get(); const c = db.contacts.find(x => x.id === currentContactId); c.offlineWordCount = document.getElementById('currentOfflineWordCount').value; LocalDB.save(db); }
 
 function saveRoleSettingsOnly() {
@@ -2513,12 +2530,13 @@ async function executeMiniMaxTTS(text, btnEl, isAutoCall = false) {
         // ==========================================
         // ====== 版本更新公告配置 (每次更新修改这里) ======
         // ==========================================
-        const CURRENT_APP_VERSION = "3.3.4"; // 每次发布新版本，修改这个版本号
+        const CURRENT_APP_VERSION = "3.3.6"; // 每次发布新版本，修改这个版本号
         const UPDATE_CHANGELOG_HTML = `
-            1. <b>通话部分更新</b>：现在可以决定打电话还是打视频啦!(不是真开)<br><br>
-            2. <b>对话改进</b>：内心话和动作可以详细控制了<br><br>
-            3. <b>角色设定小修改</b>：「升级/修复旧版角色数据」记得点一下,修复旧角色数据库残留问题<br><br>
-            4. <b>发音功能新增</b>：现在语音条也支持生成发音了!(需要设备支持或者外部克隆库)电话也增加了自动发音请大人品鉴!
+            1. <b>通话部分更新</b>：现在可以决定打电话还是打视频啦!(不会真开你摄像头!)<br><br>
+            2. <b>对话改进</b>：内心话和动作可以决定开关了(也可以决定语言,默认中文的话就不会那么痛苦了罢...)<br><br>
+            3. <b>角色设定小修改</b>：设置里「升级/修复旧版角色数据」推荐点一下,修复旧角色数据库残留问题(试验中,希望角色能更贴...)<br><br>
+            4. <b>发音功能新增</b>：现在语音条也支持生成发音了!(需要设备支持或者外部克隆库)电话也增加了自动发音请大人品鉴!(写了minimax但我没有所以没法测试,但TTS能听个响...)<br><br>
+            5. <b>顺带一提</b>：虽然我也不觉得会有人倒卖这玩意但这是免费的如果谁收你钱记得去退款...学习加油大家!
         `; // 在这里填写你要对用户说的话，支持 HTML 标签如 <br> 换行，<b> 加粗等。
         
         function checkVersionUpdate() {
