@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v3.4.2
+@name 驴的学习小手机 v3.4.3
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -1578,7 +1578,7 @@ async function handleCallSend(isTimePass = false) {
             renderCallHistory(); 
             LocalDB.updateVocabCache(parsed.bubbles, contact.targetLang); 
             
-            let allTextToRead = parsed.bubbles.map(b => b.sentence).join('，').replace(/['"`]/g, '');
+            let allTextToRead = parsed.bubbles.map(b => b.sentence).join(' ').replace(/['"`]/g, '');
             if(allTextToRead && document.getElementById('callScreen').classList.contains('show')) {
                 playVoiceMessage(allTextToRead, null, null, true);
             }
@@ -2803,7 +2803,7 @@ async function executeMiniMaxTTS(text, btnEl, isAutoCall = false, profileToUse =
         // ==========================================
         // ====== 版本更新公告配置 (每次更新修改这里) ======
         // ==========================================
-        const CURRENT_APP_VERSION = "3.4.2"; // 每次发布新版本，修改这个版本号
+        const CURRENT_APP_VERSION = "3.4.3"; // 每次发布新版本，修改这个版本号
         const UPDATE_CHANGELOG_HTML = `
             1. <b>通话部分更新</b>：现在可以决定打电话还是打视频啦!(不会真开你摄像头!)<br><br>
             2. <b>对话改进</b>：内心话和动作可以决定开关了(也可以决定语言,默认中文的话就不会那么痛苦了罢...)<br><br>
