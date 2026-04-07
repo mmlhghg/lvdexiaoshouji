@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v3.4.0
+@name 驴的学习小手机 v3.4.1
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v3.4.0</title>
+<title>驴的学习小手机 v3.4.1</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -513,7 +513,7 @@
 
 <div class="ios-sheet" id="apiSettingSheet"><div class="drag-area-top" onclick="closeApiSettingSheet()"><div class="drag-indicator"></div></div><div class="sheet-scroll"><h2 style="text-align:center; margin-bottom:20px;">API 配置中心</h2><div class="example-box"><span class="setting-label">配置档管理</span><div class="profile-row"><select id="apiProfileSelect" class="profile-select" onchange="switchApiProfile()"></select><button class="icon-btn" onclick="renameCurrentProfile()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button><button class="icon-btn" style="color:var(--ios-red);" onclick="deleteCurrentProfile()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></div><button class="ios-action-btn" style="height:40px; font-size:15px; background:#fff; border:1px solid var(--ios-blue); color:var(--ios-blue); margin-bottom:20px;" onclick="addNewProfile()">+ 新建配置档</button><hr style="border:none; border-top:1px solid #eee; margin-bottom:20px;"><span class="setting-label">API Base URL</span><input type="text" id="apiBaseUrl" class="setting-input" oninput="autoSaveApiSettings()"><span class="setting-label">API Key</span><input type="password" id="apiKey" class="setting-input" oninput="autoSaveApiSettings()"><span class="setting-label">模型 (Model)</span><select id="fetchedModelsSelect" class="setting-input" style="display:none; color:var(--ios-blue); font-weight:600;" onchange="document.getElementById('apiModel').value=this.value; autoSaveApiSettings();"></select><div style="display: flex; gap: 8px; margin-bottom: 20px;"><input type="text" id="apiModel" class="setting-input" style="margin-bottom:0;" oninput="autoSaveApiSettings()"><button class="ios-action-btn" style="width:auto; padding:0 15px; height:44px; font-size:14px;" onclick="fetchModels()">拉取模型</button></div><span class="setting-label">温度 (Temperature): <span id="tempValue">0.7</span></span><input type="range" id="apiTemp" min="0" max="2" step="0.1" style="width:100%; margin-bottom:20px;" oninput="document.getElementById('tempValue').innerText = this.value; autoSaveApiSettings()"></div><button class="ios-action-btn" style="background:var(--ios-orange); margin-bottom:12px;" onclick="testApiConnection()">发送测试请求</button><button class="ios-action-btn" onclick="closeApiSettingSheet()">完成</button></div></div>
 
-<div class="ios-sheet" id="ttsSettingSheet"><div class="drag-area-top" onclick="closeTtsSettingSheet()"><div class="drag-indicator"></div></div><div class="sheet-scroll"><h2 style="text-align:center; margin-bottom:20px;">全局发音设置</h2><div class="example-box"><span class="setting-label" style="color:var(--ios-red);">对话/通话 发音总开关</span><select id="chatTtsEngine" class="setting-input" onchange="autoSaveTtsSettings()"><option value="local">允许发音 (音色与参数请在各角色页单独配置)</option><option value="mute">全局静音 (强行关闭所有对话发音)</option></select><hr style="border:none; border-top:1px solid #eee; margin-bottom:15px;"><span class="setting-label" style="color:var(--ios-blue);">生词本字典 专属语音配置档</span><div style="background:#fafafa; border:1px solid #eee; border-radius:12px; padding:12px; margin-bottom:10px;"><div class="profile-row" style="margin-bottom:10px;"><select id="vocabProfileSelect" class="profile-select" onchange="switchVocabProfile()"></select><button class="icon-btn" onclick="renameVocabProfile()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button><button class="icon-btn" style="color:var(--ios-red);" onclick="deleteVocabProfile()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></div><button class="mini-btn" style="width:100%; margin-bottom:15px; height: 35px;" onclick="addNewVocabProfile()">+ 新建语音配置档</button><select id="vocabVoiceEngine" class="setting-input" style="margin-bottom:10px; font-size:14px; font-weight:bold; color:var(--ios-blue);" onchange="toggleVocabEngineUI(); autoSaveVocabProfile();"><option value="local">使用 本地浏览器TTS (免费/离线)</option><option value="minimax">使用 MiniMax API (需配密钥)</option><option value="mute">关闭发音 (静音)</option></select><div id="vocabMmArea" style="display:none;"><select id="vocabMmEndpoint" class="setting-input" style="margin-bottom:8px; font-size: 14px;" onchange="autoSaveVocabProfile()"><option value="api.minimax.chat">国内版节点 (api.minimax.chat)</option><option value="api.minimaxi.chat">国际版节点 (api.minimaxi.chat)</option></select><input type="text" id="vocabMmGroupId" class="setting-input" placeholder="MiniMax Group ID" style="margin-bottom:8px; font-size: 14px;" oninput="autoSaveVocabProfile()"><input type="password" id="vocabMmApiKey" class="setting-input" placeholder="MiniMax API Key" style="margin-bottom:8px; font-size: 14px;" oninput="autoSaveVocabProfile()"><select id="fetchedVocabMmVoices" class="setting-input" style="display:none; color:var(--ios-blue); font-weight:600; font-size:14px; margin-bottom:8px;" onchange="document.getElementById('vocabMmVoiceId').value=this.value; autoSaveVocabProfile();"></select><div style="display: flex; gap: 8px; margin-bottom: 0;"><input type="text" id="vocabMmVoiceId" class="setting-input" style="margin-bottom:0; font-size: 14px;" placeholder="音色 ID (例如: male-qn-qingse)" oninput="autoSaveVocabProfile()"><button class="ios-action-btn" style="width:auto; padding:0 15px; height:44px; font-size:14px; margin-bottom:0;" onclick="fetchVocabMmVoices()">拉取音色</button></div></div><div id="vocabLocalArea" style="display:none;"><span class="setting-label" style="font-size:12px;">发音人模型 <span style="color:#999;">(读取设备内部音色)</span></span><select id="vocabLocalVoice" class="setting-input" style="margin-bottom:12px; font-size:14px;" onchange="autoSaveVocabProfile()"><option value="">系统自动匹配 (默认)</option></select><span class="setting-label" style="font-size:12px;">语速 (Rate): <span id="vocabLocalRateVal">1.0</span>x</span><input type="range" id="vocabLocalRate" min="0.5" max="2.0" step="0.1" value="1.0" style="width:100%; margin-bottom:12px;" oninput="document.getElementById('vocabLocalRateVal').innerText=this.value; autoSaveVocabProfile()"><span class="setting-label" style="font-size:12px;">音高 (Pitch): <span id="vocabLocalPitchVal">1.0</span></span><input type="range" id="vocabLocalPitch" min="0.1" max="2.0" step="0.1" value="1.0" style="width:100%; margin-bottom:0;" oninput="document.getElementById('vocabLocalPitchVal').innerText=this.value; autoSaveVocabProfile()"></div></div></div><button class="ios-action-btn" onclick="closeTtsSettingSheet()">完成</button></div></div>
+<div class="ios-sheet" id="ttsSettingSheet"><div class="drag-area-top" onclick="closeTtsSettingSheet()"><div class="drag-indicator"></div></div><div class="sheet-scroll"><h2 style="text-align:center; margin-bottom:20px;">全局发音设置</h2><div class="example-box"><span class="setting-label" style="color:var(--ios-red);">发音总开关</span><select id="chatTtsEngine" class="setting-input" onchange="autoSaveTtsSettings()"><option value="local">允许发音 (音色与参数请在各角色页单独配置)</option><option value="mute">全局静音 (包括生词本字典)</option></select><hr style="border:none; border-top:1px solid #eee; margin-bottom:15px;"><span class="setting-label" style="color:var(--ios-blue);">生词本字典 专属语音配置档</span><div style="background:#fafafa; border:1px solid #eee; border-radius:12px; padding:12px; margin-bottom:10px;"><div class="profile-row" style="margin-bottom:10px;"><select id="vocabProfileSelect" class="profile-select" onchange="switchVocabProfile()"></select><button class="icon-btn" onclick="renameVocabProfile()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button><button class="icon-btn" style="color:var(--ios-red);" onclick="deleteVocabProfile()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></div><button class="mini-btn" style="width:100%; margin-bottom:15px; height: 35px;" onclick="addNewVocabProfile()">+ 新建语音配置档</button><select id="vocabVoiceEngine" class="setting-input" style="margin-bottom:10px; font-size:14px; font-weight:bold; color:var(--ios-blue);" onchange="toggleVocabEngineUI(); autoSaveVocabProfile();"><option value="local">使用 本地浏览器TTS (免费/离线)</option><option value="minimax">使用 MiniMax API (需配密钥)</option><option value="mute">关闭发音 (静音)</option></select><div id="vocabMmArea" style="display:none;"><select id="vocabMmEndpoint" class="setting-input" style="margin-bottom:8px; font-size: 14px;" onchange="autoSaveVocabProfile()"><option value="api.minimax.chat">国内版节点 (api.minimax.chat)</option><option value="api.minimaxi.chat">国际版节点 (api.minimaxi.chat)</option></select><input type="text" id="vocabMmGroupId" class="setting-input" placeholder="MiniMax Group ID" style="margin-bottom:8px; font-size: 14px;" oninput="autoSaveVocabProfile()"><input type="password" id="vocabMmApiKey" class="setting-input" placeholder="MiniMax API Key" style="margin-bottom:8px; font-size: 14px;" oninput="autoSaveVocabProfile()"><select id="fetchedVocabMmVoices" class="setting-input" style="display:none; color:var(--ios-blue); font-weight:600; font-size:14px; margin-bottom:8px;" onchange="document.getElementById('vocabMmVoiceId').value=this.value; autoSaveVocabProfile();"></select><div style="display: flex; gap: 8px; margin-bottom: 0;"><input type="text" id="vocabMmVoiceId" class="setting-input" style="margin-bottom:0; font-size: 14px;" placeholder="音色 ID (例如: male-qn-qingse)" oninput="autoSaveVocabProfile()"><button class="ios-action-btn" style="width:auto; padding:0 15px; height:44px; font-size:14px; margin-bottom:0;" onclick="fetchVocabMmVoices()">拉取</button><button class="ios-action-btn" style="width:auto; padding:0 15px; height:44px; font-size:14px; margin-bottom:0; background:var(--ios-green);" onclick="testVocabMmVoice()">试听</button></div></div><div id="vocabLocalArea" style="display:none;"><span class="setting-label" style="font-size:12px;">发音人模型 <span style="color:#999;">(读取设备内部音色)</span></span><select id="vocabLocalVoice" class="setting-input" style="margin-bottom:12px; font-size:14px;" onchange="autoSaveVocabProfile()"><option value="">系统自动匹配 (默认)</option></select><span class="setting-label" style="font-size:12px;">语速 (Rate): <span id="vocabLocalRateVal">1.0</span>x</span><input type="range" id="vocabLocalRate" min="0.5" max="2.0" step="0.1" value="1.0" style="width:100%; margin-bottom:12px;" oninput="document.getElementById('vocabLocalRateVal').innerText=this.value; autoSaveVocabProfile()"><span class="setting-label" style="font-size:12px;">音高 (Pitch): <span id="vocabLocalPitchVal">1.0</span></span><div style="display: flex; gap: 8px; margin-bottom: 0;"><input type="range" id="vocabLocalPitch" min="0.1" max="2.0" step="0.1" value="1.0" style="flex:1; margin-bottom:0;" oninput="document.getElementById('vocabLocalPitchVal').innerText=this.value; autoSaveVocabProfile()"><button class="ios-action-btn" style="width:auto; padding:0 15px; height:30px; font-size:13px; margin-bottom:0; background:var(--ios-green);" onclick="testVocabLocalVoice()">试听</button></div></div></div></div><button class="ios-action-btn" onclick="closeTtsSettingSheet()">完成</button></div></div>
 
 <div class="ios-sheet" id="addFriendSheet"><div class="drag-area-top" onclick="closeAddFriendSheet()"><div class="drag-indicator"></div></div><div class="sheet-scroll"><h2 style="text-align:center; margin-bottom:20px;">添加新角色</h2><div class="example-box"><span class="setting-label">角色昵称</span><input type="text" id="newFriendName" class="setting-input"><span class="setting-label">目标交流语言</span><input type="text" id="newFriendLang" class="setting-input" placeholder="例如：英语"><span class="setting-label" style="color:var(--ios-green);">气泡附带的翻译语言 (留空则读取全局母语)</span><input type="text" id="newFriendTransLang" class="setting-input" placeholder="例如：中文"><span class="setting-label">TA是你的谁？(关系)</span><input type="text" id="newFriendRelation" class="setting-input" placeholder="例如：青梅竹马、死对头"><span class="setting-label" style="color:var(--ios-red);">核心设定 (包含年龄/公开身份，AI将侧写覆盖)</span><textarea id="newFriendPrompt" class="setting-textarea" placeholder="例如：xx岁，性格xx..."></textarea><span class="setting-label" style="color:var(--ios-blue);">额外补充 (这里不会被覆盖,可手动修改)</span><textarea id="newFriendExtra" class="setting-textarea" placeholder="例如：说话必须带口癖..."></textarea></div><button class="ios-action-btn" onclick="saveNewFriend()">分析并添加</button></div></div>
 
@@ -581,7 +581,8 @@
                     <select id="fetchedMmVoicesSelect" class="setting-input" style="display:none; color:var(--ios-blue); font-weight:600; font-size:14px; margin-bottom:8px;" onchange="document.getElementById('mmVoiceId').value=this.value; autoSaveMmProfile();"></select>
                     <div style="display: flex; gap: 8px; margin-bottom: 0;">
                         <input type="text" id="mmVoiceId" class="setting-input" style="margin-bottom:0; font-size: 14px;" placeholder="音色 ID (例如: male-qn-qingse)" oninput="autoSaveMmProfile()">
-                        <button class="ios-action-btn" style="width:auto; padding:0 15px; height:44px; font-size:14px; margin-bottom:0;" onclick="fetchMmVoices()">拉取音色</button>
+                        <button class="ios-action-btn" style="width:auto; padding:0 15px; height:44px; font-size:14px; margin-bottom:0;" onclick="fetchMmVoices()">拉取</button>
+                        <button class="ios-action-btn" style="width:auto; padding:0 15px; height:44px; font-size:14px; margin-bottom:0; background:var(--ios-green);" onclick="testMmProfileVoice()">试听</button>
                     </div>
                 </div>
 
@@ -593,7 +594,10 @@
                     <span class="setting-label" style="font-size:12px;">语速 (Rate): <span id="roleLocalTtsRateVal">1.0</span>x</span>
                     <input type="range" id="roleLocalTtsRate" min="0.5" max="2.0" step="0.1" value="1.0" style="width:100%; margin-bottom:12px;" oninput="document.getElementById('roleLocalTtsRateVal').innerText=this.value; autoSaveMmProfile()">
                     <span class="setting-label" style="font-size:12px;">音高 (Pitch): <span id="roleLocalTtsPitchVal">1.0</span></span>
-                    <input type="range" id="roleLocalTtsPitch" min="0.1" max="2.0" step="0.1" value="1.0" style="width:100%; margin-bottom:0;" oninput="document.getElementById('roleLocalTtsPitchVal').innerText=this.value; autoSaveMmProfile()">
+                    <div style="display: flex; gap: 8px; margin-bottom: 0;">
+                        <input type="range" id="roleLocalTtsPitch" min="0.1" max="2.0" step="0.1" value="1.0" style="flex:1; margin-bottom:0;" oninput="document.getElementById('roleLocalTtsPitchVal').innerText=this.value; autoSaveMmProfile()">
+                        <button class="ios-action-btn" style="width:auto; padding:0 15px; height:30px; font-size:13px; margin-bottom:0; background:var(--ios-green);" onclick="testLocalProfileVoice()">试听</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -695,7 +699,7 @@ document.body.addEventListener('click', function(e) {
     }
 });
 
-let statusTimer = null; const donkeyMsgs = ["🫏努力奔跑中...", "🫏累了停下来喝口水...", "🫏这次有点慢哦...", "🫏再等一下下...", "🫏终点就在眼前...", "🫏要早睡早起哦...", "🫏想好今天吃什么了吗...", "🫏天冷要多穿衣服不要感冒哦..."];
+let statusTimer = null;
 function showSysStatus(msg, isTyping = false) {
     const bar = document.getElementById('sysStatusBar'); bar.classList.add('show');
     if(!isTyping) {
@@ -2592,6 +2596,45 @@ async function fetchMmVoices() {
     } catch(e) { hideSysStatus(); alert("拉取失败: " + e.message); } 
 }
 
+function getTestText(langStr) {
+    if (!langStr) return "你好，这是一段语音合成的试听示例，你觉得语速和音高合适吗？";
+    langStr = langStr.toLowerCase();
+    if (langStr.includes('en')) return "Hello, this is an example of speech synthesis. How does the speed and pitch sound to you?";
+    if (langStr.includes('ja')) return "こんにちは、これは音声合成のサンプルです。速度と高さはこれでいいですか？";
+    if (langStr.includes('ko')) return "안녕하세요, 음성 합성 샘플입니다. 속도와 음조가 적당한가요?";
+    return "你好，这是一段语音合成的试听示例，你觉得语速和音高合适吗？";
+}
+function testMmProfileVoice() {
+    autoSaveMmProfile(); const db = LocalDB.get(); const idx = parseInt(document.getElementById('mmProfileSelect').value) || 0;
+    const p = db.settings.mmProfiles[idx]; if(!p) return;
+    executeMiniMaxTTS("你好，这是一段 MiniMax 引擎的语音合成试听示例。", null, false, p);
+}
+function testLocalProfileVoice() {
+    autoSaveMmProfile(); const db = LocalDB.get(); const idx = parseInt(document.getElementById('mmProfileSelect').value) || 0;
+    const p = db.settings.mmProfiles[idx]; if(!p) return;
+    let langStr = "";
+    if (p.localVoice && 'speechSynthesis' in window) {
+        const voice = window.speechSynthesis.getVoices().find(v => v.voiceURI === p.localVoice);
+        if (voice) langStr = voice.lang;
+    }
+    executeLocalTTS(getTestText(langStr), null, "", false, p);
+}
+function testVocabMmVoice() {
+    autoSaveVocabProfile(); const db = LocalDB.get(); const idx = parseInt(document.getElementById('vocabProfileSelect').value) || 0;
+    const p = db.settings.mmProfiles[idx]; if(!p) return;
+    executeMiniMaxTTS("你好，这是一段 MiniMax 引擎的语音合成试听示例。", null, false, p);
+}
+function testVocabLocalVoice() {
+    autoSaveVocabProfile(); const db = LocalDB.get(); const idx = parseInt(document.getElementById('vocabProfileSelect').value) || 0;
+    const p = db.settings.mmProfiles[idx]; if(!p) return;
+    let langStr = "";
+    if (p.localVoice && 'speechSynthesis' in window) {
+        const voice = window.speechSynthesis.getVoices().find(v => v.voiceURI === p.localVoice);
+        if (voice) langStr = voice.lang;
+    }
+    executeLocalTTS(getTestText(langStr), null, "", false, p);
+}
+
 // ====== 统一发音引擎 (支持 Local 和 MiniMax 无缝切换) ======
 let currentAudioObj = null;
 
@@ -2743,7 +2786,7 @@ async function executeMiniMaxTTS(text, btnEl, isAutoCall = false, profileToUse =
         // ==========================================
         // ====== 版本更新公告配置 (每次更新修改这里) ======
         // ==========================================
-        const CURRENT_APP_VERSION = "3.4.0"; // 每次发布新版本，修改这个版本号
+        const CURRENT_APP_VERSION = "3.4.1"; // 每次发布新版本，修改这个版本号
         const UPDATE_CHANGELOG_HTML = `
             1. <b>通话部分更新</b>：现在可以决定打电话还是打视频啦!(不会真开你摄像头!)<br><br>
             2. <b>对话改进</b>：内心话和动作可以决定开关了(也可以决定语言,默认中文的话就不会那么痛苦了罢...)<br><br>
@@ -2774,6 +2817,20 @@ async function executeMiniMaxTTS(text, btnEl, isAutoCall = false, profileToUse =
         // 页面加载完成后延迟 500 毫秒检查是否需要弹窗
         setTimeout(checkVersionUpdate, 500);
         
+        // ==========================================
+        // ====== 驴的碎碎念 ======
+        // ==========================================
+        var donkeyMsgs = [
+            "🫏努力奔跑中...", 
+            "🫏累了停下来喝口水...", 
+            "🫏这次有点慢哦...", 
+            "🫏再等一下下...", 
+            "🫏终点就在眼前...", 
+            "🫏要早睡早起哦...", 
+            "🫏想好今天吃什么了吗...", 
+            "🫏最近换季注意不要感冒哦..."
+        ];
+
         </script>
         </body>
         </html>
