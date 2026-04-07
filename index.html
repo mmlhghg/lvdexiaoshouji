@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v3.3.6
+@name 驴的学习小手机 v3.3.7
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v3.3.6</title>
+<title>驴的学习小手机 v3.3.7</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -229,8 +229,8 @@
   .fs-header { height: 50px; display: flex; align-items: center; padding: 0 16px; background: #fff; border-bottom: 1px solid var(--border-color); flex-shrink:0;}
   .fs-close-btn { color: var(--ios-blue); font-size: 16px; cursor: pointer; background: none; border: none; display: flex; align-items: center;}
 
-  .call-screen { position: fixed; inset: 0; background-color: #000; color: #fff; z-index: 200; display: flex; flex-direction: column; transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1); transform: translateY(100%); touch-action: auto; }
-  .call-screen.show { transform: translateY(0); }
+  .call-screen { position: fixed; inset: 0; background-color: #000; color: #fff; z-index: 200; display: flex; flex-direction: column; transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1), visibility 0.5s; transform: translateY(120%); visibility: hidden; touch-action: auto; }
+  .call-screen.show { transform: translateY(0); visibility: visible; }
   .call-header { height: calc(50px + env(safe-area-inset-top)); padding-top: env(safe-area-inset-top); display: flex; align-items: center; justify-content: space-between; padding-left: 16px; padding-right: 16px; flex-shrink: 0; position: relative; }
   .call-minimize-btn { color: #fff; background: none; border: none; font-size: 24px; cursor: pointer; display: flex; align-items: center;}
   .call-status-area { display: flex; flex-direction: column; align-items: center; position: absolute; left: 50%; transform: translateX(-50%); }
@@ -594,6 +594,12 @@
 
         <div style="display:flex; gap:10px; margin-top: 15px; align-items: stretch;">
             <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+                <span class="setting-label">单页消息显示条数 <span style="font-size:10px;color:#999;font-weight:normal;">(仅影响显示，太多会卡顿)</span></span>
+                <input type="number" id="currentRoleRenderLimit" class="setting-input" placeholder="默认40" style="margin-bottom:0;">
+            </div>
+        </div>
+        <div style="display:flex; gap:10px; margin-top: 15px; align-items: stretch;">
+            <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
                 <span class="setting-label">带入历史回合数 <span style="font-size:10px;color:#999;font-weight:normal;">(注：只要换人说话即算1个回合，AI连发多条气泡仅算1回合)</span></span>
                 <input type="number" id="currentRoleHistoryLimit" class="setting-input" placeholder="默认10" style="margin-bottom:0;">
             </div>
@@ -952,7 +958,7 @@ function openChat(id) {
             loadMmProfileIntoUI();
             actionBtn2.style.display = 'block'; actionBtn2.innerText = "结合近期记忆重新侧写"; actionBtn2.onclick = reAnalyzeProfile;
         }
-        document.getElementById('currentRoleHistoryLimit').value = latestContact.historyLimit || 10; document.getElementById('currentRoleSummaryThreshold').value = latestContact.summaryThreshold || 30; document.getElementById('currentRoleMemory').value = latestContact.memory || "";
+        document.getElementById('currentRoleRenderLimit').value = latestContact.renderLimit || 40; document.getElementById('currentRoleHistoryLimit').value = latestContact.historyLimit || 10; document.getElementById('currentRoleSummaryThreshold').value = latestContact.summaryThreshold || 30; document.getElementById('currentRoleMemory').value = latestContact.memory || "";
         
         let tTurns = countTurns(latestContact.history);
         let sTurns = countTurns(latestContact.history.slice(0, latestContact.summarizedCount || 0));
@@ -1004,8 +1010,19 @@ function triggerSystemEvent() {
 function renderChat(id) {
     const c = LocalDB.get().contacts.find(x => x.id === id); const container = document.getElementById('chatHistoryContainer'); container.innerHTML = '';
     
+    let limit = parseInt(c.renderLimit) || 40;
+    if (window.tempRenderLimit && window.tempRenderLimit[id]) limit = window.tempRenderLimit[id];
+    
+    let msgsToRender = c.history;
+    if (c.history.length > limit) {
+        msgsToRender = c.history.slice(-limit);
+        const loadMoreBtn = document.createElement('div');
+        loadMoreBtn.innerHTML = `<button class="mini-btn" style="margin: 10px auto; display: block; background: #f9f9f9; border: 1px solid #eee; color: var(--ios-gray-text);" onclick="window.tempRenderLimit = window.tempRenderLimit || {}; window.tempRenderLimit['${id}'] = ${limit} + 40; renderChat('${id}')">↑ 加载更早记录 (${limit}/${c.history.length})</button>`;
+        container.appendChild(loadMoreBtn);
+    }
+
     let lastMsgTime = 0;
-    c.history.forEach(msg => {
+    msgsToRender.forEach(msg => {
         let ts = msg.timestamp;
         if (!ts && msg.id) {
             let match = msg.id.match(/^m(\d{13})/);
@@ -1589,7 +1606,7 @@ async function handleSend(triggerAI, isReroll = false) {
     const offlineScenario = freshDb.settings.offlineProfiles ? `\n【当前所处现实场景】${freshDb.settings.offlineProfiles[freshDb.settings.currentOfflineIndex]?.prompt || ""}` : "";
 
     let dramaConstraint = freshContact.dramaMode === "false" 
-        ? "\n【纯净对白模式】绝对禁止输出任何 action 和 inner_thought，只允许在 sentence 里输出对白台词！" 
+        ? "\n注意：用户当前已关闭剧本描写模式。即使之前的聊天记录里有内心话或动作描写，也请不要再继续输出 action 和 inner_thought 字段，仅输出纯台词即可。" 
         : `\n【剧本描写模式】如果有客观动作、环境音或内心戏，请分别填在 action 或 inner_thought 里(绝对不要加括号！前端会自动渲染)。纯台词写在 sentence。`;
 
     if (freshContact.type === 'group') {
@@ -2236,6 +2253,7 @@ function saveRoleSettingsOnly() {
             c.extraPrompt = document.getElementById('currentRoleExtra').value;
             c.dramaMode = document.getElementById('currentRoleDramaMode').value;
         }
+        c.renderLimit = document.getElementById('currentRoleRenderLimit').value;
         c.historyLimit = document.getElementById('currentRoleHistoryLimit').value; 
         c.summaryThreshold = document.getElementById('currentRoleSummaryThreshold').value; 
         c.memory = document.getElementById('currentRoleMemory').value; 
@@ -2530,7 +2548,7 @@ async function executeMiniMaxTTS(text, btnEl, isAutoCall = false) {
         // ==========================================
         // ====== 版本更新公告配置 (每次更新修改这里) ======
         // ==========================================
-        const CURRENT_APP_VERSION = "3.3.6"; // 每次发布新版本，修改这个版本号
+        const CURRENT_APP_VERSION = "3.3.7"; // 每次发布新版本，修改这个版本号
         const UPDATE_CHANGELOG_HTML = `
             1. <b>通话部分更新</b>：现在可以决定打电话还是打视频啦!(不会真开你摄像头!)<br><br>
             2. <b>对话改进</b>：内心话和动作可以决定开关了(也可以决定语言,默认中文的话就不会那么痛苦了罢...)<br><br>
