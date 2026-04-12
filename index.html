@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v3.6.4
+@name 驴的学习小手机 v3.6.5
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v3.6.4</title>
+<title>驴的学习小手机 v3.6.5</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -2093,7 +2093,7 @@ async function handleSend(triggerAI, isReroll = false, isAutoGroupPull = false) 
         return `- ID: ${c.id} | 角色: ${c.name} (关系: ${c.relation||'未知'})${gInfo} | 距离上次聊天已过: ${formatRelativeTime(c.updatedAt, false)}${extraState}`;
     }).join('\n');
     
-    let globalDirectorPrompt = otherNamesInfo ? `\n\n【上帝视角与后台并行世界】\n当前世界中还存在以下后台角色(ID与信息映射)，且时间是同步流动的：\n${otherNamesInfo}\n\n作为总导演，请评估这些后台角色当前的状态。结合时间差和人设决定他们是否会突然主动找用户。如果你认为某人应该插话，请返回该角色的 \`character_id\` 在 JSON 的 'background_interruptions' 数组中。如果大家都安静，就返回 []。` : "";
+    let globalDirectorPrompt = otherNamesInfo ? `\n\n【上帝视角与后台并行世界】\n当前世界中还存在以下后台角色(ID与信息映射)，且时间是同步流动的：\n${otherNamesInfo}\n\n作为总导演，请评估这些后台角色当前的状态。结合时间差和人设决定他们是否会突然主动找用户。如果你认为某人应该插话，请务必返回该角色的 \`character_id\` 在 JSON 的 'background_interruptions' 数组中，并在 \`action_type\` 标明是 call 或 message。如果大家都安静，就返回 []。` : "";
 
     let callStateWarning = "";
     if (inCall && activeCallContactId === targetContactId) {
@@ -2107,7 +2107,7 @@ async function handleSend(triggerAI, isReroll = false, isAutoGroupPull = false) 
     const wordCount = freshContact.offlineWordCount || "1000-2000";
     const offlineScenario = freshDb.settings.offlineProfiles ? `\n【当前所处现实场景】${freshDb.settings.offlineProfiles[freshDb.settings.currentOfflineIndex]?.prompt || ""}` : "";
 
-    const realityFilterOnline = `\n【设定现实化感知】\n请将一切极端设定转化为现代法治社会中的真实人类行为(如查岗、生闷气)。\n【动态情绪演进】若观察到用户连续敷衍/沉默，必须展现出层层递进的情绪变化，拒绝复读。\n【格式排版铁律】绝对禁止在台词前加自己的名字或冒号！绝对禁止输出类似的角色名前缀！\n【图片发送铁律】如果要发照片，\`[图片: 画面详细描述]\` **必须完全独占一个气泡的 sentence 字段**！【致命错误】：绝对不能把图片标签和说话文字放在同一个 sentence 里！如果你又要发图又要说话，就必须拆分成两个连续的 bubble 气泡！另外，绝对禁止在动作里描写“发送了一张照片”！\n【系统级事件调用】为了增加真实感，你可在 \`system_event\` 字段输出系统级客观通知。例如：“XX向你发送了位置共享”、“XX撤回了一条消息”、“XX已被管理员禁言10分钟”、“XX拍了拍你”、“向你转账520元”等。**仅限**无感情的客观手机系统提示，绝对禁止包含任何心理描写或环境旁白！不需要触发系统事件就留空！` + callStateWarning;
+    const realityFilterOnline = `\n【设定现实化感知】\n请将一切极端设定转化为现代法治社会中的真实人类行为(如查岗、生闷气)。\n【动态情绪演进】若观察到用户连续敷衍/沉默，必须展现出层层递进的情绪变化，拒绝复读。\n【格式排版铁律】绝对禁止在台词前加自己的名字或冒号！绝对禁止输出类似的角色名前缀！\n【图片发送铁律】如果要发照片，\`[图片: 画面详细描述]\` **必须完全独占一个气泡的 sentence 字段**！【致命错误】：绝对不能把图片标签和说话文字放在同一个 sentence 里！如果你又要发图又要说话，就必须拆分成两个连续的 bubble 气泡！另外，绝对禁止在动作里描写“发送了一张照片”！\n【系统级事件调用】为了增加真实感，你可在 \`system_event\` 字段输出系统级客观通知。例如：“XX向你发送了位置共享”、“XX撤回了一条消息”、“向你转账”等。**仅限**无感情的客观手机系统提示。**【致命警告】：绝对禁止在 system_event 中输出或伪造“XX发起了通话”！想打电话必须严格走 background_interruptions 数组来触发UI！**` + callStateWarning;
     
     const realityFilterOffline = `\n【设定现实化感知】\n请将一切极端设定转化为真实的物理现实互动。\n【格式排版铁律】绝对禁止在台词前加自己的名字或冒号！\n【禁绝网聊毒瘤】当前是面对面的现实场景！**绝对禁止在剧情中出现“发消息”、“手机屏幕亮起”、“弹通知”、“打字”等一切网聊行为！** 用户刚才输入的话，是User就站在你面前亲口对你说的！` + callStateWarning;
 
@@ -2267,7 +2267,7 @@ async function handleSend(triggerAI, isReroll = false, isAutoGroupPull = false) 
                 const secretChar = freshDb.contacts.find(c => c.id === act.character_id && c.type === 'single');
                 if (secretChar) {
                     let cleanSecretContent = (act.accepted_bubbles || []).map(b=>b.sentence).join('\n');
-                    if (act.action_type === 'call') {
+                    if (act.action_type === 'call' || act.action_type === 'voice' || act.action_type === 'video' || act.call_type) {
                         if (inCall) {
                             // 如果已经在电话里了，对方直接被判拒接，触发 rejected_bubbles
                             const isVideo = String(act.call_type || '').toLowerCase().includes('video') || String(act.call_type || '').includes('视');
@@ -3402,7 +3402,7 @@ async function executeMiniMaxTTS(text, btnEl, isAutoCall = false, profileToUse =
         // ==========================================
         // ====== 版本更新公告配置 (每次更新修改这里) ======
         // ==========================================
-        const CURRENT_APP_VERSION = "3.6.4"; // 每次发布新版本，修改这个版本号
+        const CURRENT_APP_VERSION = "3.6.5"; // 每次发布新版本，修改这个版本号
         const UPDATE_CHANGELOG_HTML = `
             1. <b>通话部分更新</b>：现在可以决定打电话还是打视频啦!(不会真开你摄像头!麦克风和摄像头随时开关)<br><br>
             2. <b>对话改进</b>：内心话和动作可以决定开关了(也可以决定语言,默认中文的话就不会那么痛苦了罢...)<br><br>
