@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v3.7.2
+@name 驴的学习小手机 v3.7.3
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v3.7.2</title>
+<title>驴的学习小手机 v3.7.3</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -781,7 +781,19 @@ function startVoiceDictation() {
         document.getElementById('callInput').value = finalDictatedText + interim;
     };
     
-    voiceRecognition.onerror = function(event) { console.error("语音识别异常:", event.error); };
+    voiceRecognition.onerror = function(event) { 
+        console.error("语音识别异常:", event.error); 
+        let errorMsg = "语音识别发生错误：" + event.error;
+        if (event.error === 'not-allowed') {
+            errorMsg = "录音失败：麦克风权限被拒绝，或苹果手机在非 https 环境下强行掐断了麦克风！(请使用 https 访问)";
+        } else if (event.error === 'network') {
+            errorMsg = "录音失败：网络无法连接到语音识别服务！(国内安卓设备通常被阉割了此服务，请使用Chrome/Edge)";
+        } else if (event.error === 'no-speech') {
+            errorMsg = "录音中断：苹果系统检测到你没有立刻说话，自动停止了收音。";
+        }
+        alert(errorMsg);
+        exitDictationMode(); // 遇到错误立刻重置UI状态
+    };
     voiceRecognition.onend = function() { if (isDictatingMode) exitDictationMode(); };
     voiceRecognition.start();
 }
@@ -3659,12 +3671,12 @@ async function executeMiniMaxTTS(text, btnEl, isAutoCall = false, profileToUse =
         // ==========================================
         // ====== 版本更新公告配置 (每次更新修改这里) ======
         // ==========================================
-        const CURRENT_APP_VERSION = "3.7.2"; // 每次发布新版本，修改这个版本号
+        const CURRENT_APP_VERSION = "3.7.3"; // 每次发布新版本，修改这个版本号
         const UPDATE_CHANGELOG_HTML = `
             1. <b>通话部分更新</b>：现在可以决定打电话还是打视频啦!(不会真开你摄像头!麦克风和摄像头随时开关)<br><br>
             2. <b>对话改进</b>：内心话和动作可以决定开关了(也可以决定语言,默认中文的话就不会那么痛苦了罢...)<br><br>
             3. <b>角色设定小修改</b>：设置里「升级/修复旧版角色数据」推荐点一下,修复旧角色数据库残留问题(试验中,希望角色能更贴...)<br><br>
-            4. <b>发音功能新增</b>：增加本地语音转文字,语音条也支持生成发音了!(需要设备支持或者外部克隆库，语音档为角色间通用记得多创避免互相影响)电话也增加了自动发音请大人品鉴!(和一些效果小巧思，写了minimax但我没有所以没法测试,但TTS能听个响...)<br><br>
+            4. <b>发音功能新增</b>：增加本地语音转文字(仅测试电脑支持良好),语音条也支持生成发音了!(需要设备支持或者外部克隆库，语音档为角色间通用记得多创避免互相影响)电话也增加了自动发音请大人品鉴!(和一些效果小巧思，写了minimax但我没有所以没法测试,但TTS能听个响...)<br><br>
             5. <b>一些零碎补充</b>：增加置顶，群聊中点击姓名可以@角色，修复删除本轮回复删除太多的问题，增加消息误删/编辑反悔功能，通话的时候停留在当前群聊会唤起群聊自动推进，通话增加重新生成本轮防止以上功能出错不方便删除等<br><br>
             6. <b>顺带一提</b>：虽然我也不觉得会有人倒卖这玩意但这是免费的如果谁收你钱记得去退款...学习加油大家!
         `; // 在这里填写你要对用户说的话，支持 HTML 标签如 <br> 换行，<b> 加粗等。
