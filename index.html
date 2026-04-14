@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v3.7.3
+@name 驴的学习小手机 v3.7.4
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v3.7.3</title>
+<title>驴的学习小手机 v3.7.4</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -891,6 +891,15 @@ msgInput.addEventListener('blur', () => {
 });
 
 document.getElementById('callInput').addEventListener('focus', () => { 
+    // 1. 键盘弹起时，隐藏底部的挂断电话按钮，腾出空间
+    document.querySelector('.hangup-btn').style.display = 'none';
+    
+    // 2. 双重保险：强制刷新一次视口高度，压制苹果自带的诡异滚动，防止卡住上不来
+    if (window.visualViewport) {
+        document.getElementById('callScreen').style.height = window.visualViewport.height + 'px';
+        window.scrollTo(0, 0);
+    }
+    
     setTimeout(() => { 
         const container = document.getElementById('callLyricsContainer'); 
         container.scrollTop = container.scrollHeight; 
@@ -898,10 +907,18 @@ document.getElementById('callInput').addEventListener('focus', () => {
     }, 300); 
 });
 
+// 3. 监听键盘收起（失去焦点），恢复挂断按钮
+document.getElementById('callInput').addEventListener('blur', () => { 
+    document.querySelector('.hangup-btn').style.display = 'flex';
+    setTimeout(() => { window.scrollTo(0, 0); document.body.scrollTop = 0; }, 100);
+});
+
 // iOS 键盘终极防遮挡杀器：根据实际可视窗口动态调整高度
 if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', () => {
         document.body.style.height = window.visualViewport.height + 'px';
+        // 同步压缩通话界面的高度，防止输入框被键盘遮挡
+        document.getElementById('callScreen').style.height = window.visualViewport.height + 'px';
         window.scrollTo(0, 0);
     });
 }
@@ -2257,7 +2274,7 @@ async function handleCallSend(isTimePass = false) {
         if (e.name === 'AbortError') {
             console.log("通话请求已被用户主动打断");
         } else {
-            currentCallHistory.push({ type: 'received', content: `[网络异常或格式错误] ${e.message} \n（系统底层信息：以上为故障日志，请AI完全忽略此错误，继续扮演）`, isError: true }); 
+            currentCallHistory.push({ type: 'received', content: `[网络异常或格式错误] ${e.message} `, isError: true }); 
             renderCallHistory(); 
         }
     } finally {
@@ -3671,21 +3688,60 @@ async function executeMiniMaxTTS(text, btnEl, isAutoCall = false, profileToUse =
         // ==========================================
         // ====== 版本更新公告配置 (每次更新修改这里) ======
         // ==========================================
-        const CURRENT_APP_VERSION = "3.7.3"; // 每次发布新版本，修改这个版本号
-        const UPDATE_CHANGELOG_HTML = `
-            1. <b>通话部分更新</b>：现在可以决定打电话还是打视频啦!(不会真开你摄像头!麦克风和摄像头随时开关)<br><br>
-            2. <b>对话改进</b>：内心话和动作可以决定开关了(也可以决定语言,默认中文的话就不会那么痛苦了罢...)<br><br>
-            3. <b>角色设定小修改</b>：设置里「升级/修复旧版角色数据」推荐点一下,修复旧角色数据库残留问题(试验中,希望角色能更贴...)<br><br>
-            4. <b>发音功能新增</b>：增加本地语音转文字(仅测试电脑支持良好),语音条也支持生成发音了!(需要设备支持或者外部克隆库，语音档为角色间通用记得多创避免互相影响)电话也增加了自动发音请大人品鉴!(和一些效果小巧思，写了minimax但我没有所以没法测试,但TTS能听个响...)<br><br>
-            5. <b>一些零碎补充</b>：增加置顶，群聊中点击姓名可以@角色，修复删除本轮回复删除太多的问题，增加消息误删/编辑反悔功能，通话的时候停留在当前群聊会唤起群聊自动推进，通话增加重新生成本轮防止以上功能出错不方便删除等<br><br>
-            6. <b>顺带一提</b>：虽然我也不觉得会有人倒卖这玩意但这是免费的如果谁收你钱记得去退款...学习加油大家!
-        `; // 在这里填写你要对用户说的话，支持 HTML 标签如 <br> 换行，<b> 加粗等。
+        
+        // 以数组形式管理历史版本，最上面的为最新版本
+        const CHANGELOG_DATA = [
+            {
+                version: "3.7.4",
+                date: "2026-04-14",
+                content: `
+                    1. <b>修复与优化</b>：修复了iOS键盘遮挡通话输入框的问题。<br>
+                    2. <b>机制调整</b>：增加了通话中本地语音转文字,可以直接对话啦(目前测试仅windows/ios支持良好)。<br>
+                    3. <b>界面改进</b>：修复图片显示问题,点击后可以正常查看。<br>
+                    4. <b>关于通话自动发音</b>：windows测试正常,ios系统限制加上本地TTS太难听我就没改,如果需要的话进入通话前随意点击一个例句或单词播放调用一下就行。<br>
+                    5. <b>一些零碎补充</b>：修复翻页问题，修复人称错误与一些报错提示。
+                `
+            },
+            {
+                version: "3.7.3",
+                date: "2026-04-12",
+                content: `
+                    1. <b>通话部分更新</b>：现在可以决定打电话还是打视频啦!(不会真开你摄像头!麦克风和摄像头随时开关)<br>
+                    2. <b>对话改进</b>：内心话和动作可以决定开关了(也可以决定语言,默认中文的话就不会那么痛苦了罢...)<br>
+                    3. <b>角色设定小修改</b>：设置里「升级/修复旧版角色数据」推荐点一下,修复旧角色数据库残留问题。<br>
+                    4. <b>发音功能新增</b>：现在语音条也支持生成发音了！电话也增加了自动发音请大人品鉴！<br>
+                    5. <b>一些零碎补充</b>：增加置顶，群聊中点击姓名可以@角色，修复删除本轮回复删除太多的问题，通话增加重新生成本轮。<br>
+                    6. <b>顺带一提</b>：虽然我也不觉得会有人倒卖这玩意但这是免费的如果谁收你钱记得去退款...学习加油大家!
+                `
+            }
+        ];
+
+        // 自动读取数组最顶部的版本号作为当前最新版本
+        const CURRENT_APP_VERSION = CHANGELOG_DATA[0].version; 
+        
+        // 动态渲染更新日志框
+        function renderChangelog() {
+            let html = "";
+            CHANGELOG_DATA.forEach(item => {
+                html += `
+                <div style="margin-bottom: 16px; border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; background: #FAFAFC; text-align: left;">
+                    <div style="font-size: 16px; font-weight: bold; color: var(--ios-blue); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 6px;">
+                        <span>v${item.version} 更新</span>
+                        <span style="font-size: 12px; color: #999; font-weight: normal;">${item.date}</span>
+                    </div>
+                    <div style="font-size: 14px; color: #333; line-height: 1.6;">
+                        ${item.content}
+                    </div>
+                </div>`;
+            });
+            return html;
+        }
         
         function checkVersionUpdate() {
             const db = LocalDB.get();
             // 如果版本号不同，说明是新版本，弹出提示（但不在此时写入数据库）
             if (!db.settings.lastSeenVersion || db.settings.lastSeenVersion !== CURRENT_APP_VERSION) {
-                document.getElementById('changelogContent').innerHTML = UPDATE_CHANGELOG_HTML;
+                document.getElementById('changelogContent').innerHTML = renderChangelog();
                 document.getElementById('changelogModal').classList.add('show');
             }
         }
