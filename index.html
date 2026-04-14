@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v3.6.6
+@name 驴的学习小手机 v3.7.2
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v3.6.6</title>
+<title>驴的学习小手机 v3.7.2</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -88,6 +88,16 @@
   .media-content { display: flex; flex-direction: column; gap: 4px; }
   .media-tag { font-size: 10px; opacity: 0.7; font-weight: bold; text-transform: uppercase; margin-bottom: 2px; display: block;}
   .media-img { max-width: 100%; border-radius: 8px; margin-bottom: 4px; display: block; border: 1px solid rgba(0,0,0,0.1); }
+  
+  /* 毛玻璃盲盒图片气泡 (单向解锁) */
+  .secret-image-box { position: relative; min-width: 220px; background: linear-gradient(135deg, #e9e9eb, #f5f5f5); border-radius: 14px; overflow: hidden; margin-bottom: 4px; transition: all 0.3s ease; border: 1px solid rgba(0,0,0,0.05); }
+  .message.sent .secret-image-box { background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1)); }
+  .secret-image-box:not(.revealed) { min-height: 90px; cursor: pointer; }
+  .secret-cover { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 2; transition: opacity 0.3s; }
+  .secret-btn { background: rgba(255,255,255,0.9); color: #000; padding: 6px 14px; border-radius: 16px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.1); pointer-events: none; }
+  .secret-content { padding: 12px; display: none; font-size: 15px; }
+  .secret-image-box.revealed .secret-cover { opacity: 0; pointer-events: none; }
+  .secret-image-box.revealed .secret-content { display: block; animation: fadeUpIn 0.3s ease; }
   .media-audio-box { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.4); padding: 6px 12px; border-radius: 12px; margin-bottom: 2px; border: 1px solid rgba(0,0,0,0.05);}
   .media-audio-icon { width: 18px; height: 18px; fill: currentColor; }
   .media-transcript { font-size: 15px; } 
@@ -233,13 +243,13 @@
 
   .call-screen { position: fixed; inset: 0; background-color: #000; color: #fff; z-index: 200; display: flex; flex-direction: column; transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1), visibility 0.5s; transform: translateY(120%); visibility: hidden; touch-action: auto; }
   .call-screen.show { transform: translateY(0); visibility: visible; }
-  .call-header { height: calc(50px + env(safe-area-inset-top)); padding-top: env(safe-area-inset-top); display: flex; align-items: center; justify-content: space-between; padding-left: 16px; padding-right: 16px; flex-shrink: 0; position: relative; }
+  .call-header { height: calc(50px + env(safe-area-inset-top)); padding-top: env(safe-area-inset-top); display: flex; align-items: center; justify-content: space-between; padding-left: 16px; padding-right: 16px; flex-shrink: 0; position: relative; z-index: 20; }
   .call-minimize-btn { color: #fff; background: none; border: none; font-size: 24px; cursor: pointer; display: flex; align-items: center;}
   .call-status-area { display: flex; flex-direction: column; align-items: center; position: absolute; left: 50%; transform: translateX(-50%); }
   .call-ripple { width: 12px; height: 12px; background-color: var(--ios-green); border-radius: 50%; margin-bottom: 4px; box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7); animation: pulse-green 1.5s infinite; }
   @keyframes pulse-green { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(52, 199, 89, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); } }
   .call-timer { font-size: 13px; font-variant-numeric: tabular-nums; opacity: 0.8; }
-  .call-lyrics-container { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 24px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+  .call-lyrics-container { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 24px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; position: relative; z-index: 20; }
   .lyric-row { display: flex; flex-direction: column; max-width: 90%; animation: fadeUpIn 0.4s ease forwards;}
   @keyframes fadeUpIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
   .lyric-row.received { align-self: flex-start; }
@@ -257,7 +267,7 @@
   .lyric-action-btn { background: rgba(255,255,255,0.15); border: none; color: #fff; border-radius: 12px; padding: 4px 10px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px;}
   .lyric-action-btn svg { width: 12px; height: 12px; }
   .lyric-action-btn:active { background: rgba(255,255,255,0.3); }
-  .call-footer { flex-shrink: 0; padding: 10px 16px calc(env(safe-area-inset-bottom, 20px) + 10px); background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); display: flex; flex-direction: column; gap: 15px;}
+  .call-footer { flex-shrink: 0; padding: 10px 16px calc(env(safe-area-inset-bottom, 20px) + 10px); background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); display: flex; flex-direction: column; gap: 15px; position: relative; z-index: 20; }
   .call-input-bar { display: flex; align-items: center; background: rgba(255,255,255,0.15); border-radius: 20px; padding: 4px 8px; }
   .call-input-box { flex: 1; background: transparent; border: none; color: #fff; font-size: 16px; padding: 8px; outline: none;}
   .call-input-box::placeholder { color: rgba(255,255,255,0.5); }
@@ -298,13 +308,38 @@
       border: 1px solid rgba(255, 59, 48, 0.3);
   }
   
-  /* 视频通话边缘呼吸灯 */
+  /* 视频通话边缘呼吸灯 (AI发声时) */
   .call-screen.speaking::after {
     content: ''; position: absolute; inset: 0; pointer-events: none;
     box-shadow: inset 0 0 40px rgba(52, 199, 89, 0.4);
     animation: call-breathe 1.5s infinite alternate; z-index: 10;
   }
   @keyframes call-breathe { 0% { opacity: 0.5; } 100% { opacity: 1; box-shadow: inset 0 0 70px rgba(52, 199, 89, 0.7); } }
+
+  /* 语音盲发全屏录音光效 (User录音时) */
+  .vfx-layer.siri-waves { position: absolute; bottom: 0; left: 0; right: 0; height: 150px; pointer-events: none; opacity: 0; transition: opacity 0.3s; background: linear-gradient(to top, rgba(52, 199, 89, 0.4), transparent); filter: blur(20px); transform: translateY(100%); z-index: 2; }
+  .call-screen.is-dictating .vfx-layer.siri-waves { opacity: 1; transform: translateY(0); animation: siri-flow 2s infinite alternate ease-in-out; }
+  @keyframes siri-flow { 0% { height: 120px; background: linear-gradient(to top, rgba(52, 199, 89, 0.5), transparent); } 100% { height: 250px; background: linear-gradient(to top, rgba(0, 122, 255, 0.5), transparent); } }
+
+  .vfx-layer.neon { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.3s; box-sizing: border-box; z-index: 1; }
+  .call-screen.is-dictating .vfx-layer.neon { opacity: 1; border: 4px solid transparent; background: linear-gradient(0deg, #000, #000) padding-box, linear-gradient(var(--angle), var(--ios-green), var(--ios-blue), var(--ios-red)) border-box; animation: neon-spin 3s linear infinite; }
+  @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+  @keyframes neon-spin { to { --angle: 360deg; } }
+
+  /* 电话输入框内嵌麦克风样式 */
+  .inner-mic-btn { position: absolute; right: 4px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.05); width: 30px; height: 30px; border-radius: 15px; color: rgba(255,255,255,0.9); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; backdrop-filter: blur(5px);}
+  .inner-mic-btn:active { background: rgba(255,255,255,0.3); transform: scale(1.05); }
+  .inner-mic-btn svg { width: 16px; height: 16px; stroke-width: 2; stroke: currentColor; fill: none; }
+  
+  .record-status-overlay { position: absolute; inset: 0; background: #222; border-radius: 20px; display: flex; align-items: center; padding-left: 12px; color: #fff; font-weight: 600; font-size: 15px; opacity: 0; visibility: hidden; transition: 0.2s; pointer-events: none; border: 1px solid rgba(52, 199, 89, 0.5); z-index: 5;}
+  .record-status-overlay.show { opacity: 1; visibility: visible; }
+  .rec-dot { color: var(--ios-red); animation: blink 1s infinite alternate; margin-right: 8px; font-size: 12px;}
+  @keyframes blink { from { opacity: 0.3; } to { opacity: 1; text-shadow: 0 0 8px var(--ios-red); } }
+  
+  .call-send-btn.pulse-mode { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7); animation: send-pulse 1.5s infinite; }
+  @keyframes send-pulse { 0% { transform: scale(0.95); } 70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(52, 199, 89, 0); } 100% { transform: scale(0.95); } }
+  
+  .call-camera-btn.cancel-mode { background: rgba(255, 59, 48, 0.2); color: var(--ios-red); }
   
   /* 摄像头切换按钮 */
   .call-camera-btn {
@@ -419,6 +454,9 @@
 </footer>
 
 <div class="call-screen" id="callScreen">
+  <div class="vfx-layer neon"></div>
+  <div class="vfx-layer siri-waves"></div>
+
   <div class="call-header">
       <button class="call-minimize-btn" onclick="minimizeCall()"><svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
       <div class="call-status-area">
@@ -435,10 +473,20 @@
   <div class="call-footer">
       <div class="call-input-bar">
           <button class="call-camera-btn" id="userMicBtn" onclick="toggleUserMic()" title="开启/关闭麦克风"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg></button>
-          <input type="text" class="call-input-box" id="callInput" placeholder="说点什么(留空即可推进时间)...">
+          
+          <div style="flex:1; position:relative; display:flex; align-items:center;">
+            <input type="text" class="call-input-box" id="callInput" style="width:100%; padding-right:40px;" placeholder="说点什么(留空即可推进时间)...">
+            <button class="inner-mic-btn" id="innerMicTrigger" onclick="startVoiceDictation()" title="点击开始语音盲发">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5v14M7 5v14M22 10v4M2 10v4"/></svg>
+            </button>
+            <div class="record-status-overlay" id="recordOverlay">
+              <span class="rec-dot">●</span> 正在聆听，讲完点右侧发送...
+            </div>
+          </div>
+
           <button class="call-send-btn" id="callSendBtn" onclick="sendInCall()"><svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
       </div>
-      <button class="hangup-btn" onclick="hangUpCall()"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.6 13.6c-.34.34-.8.51-1.27.51s-.93-.17-1.27-.51L12 13.5l-2.06 2.1c-.34.34-.8.51-1.27.51s-.93-.17-1.27-.51c-.7-.7-.7-1.84 0-2.54L9.46 11l-2.06-2.1c-.7-.7-.7-1.84 0-2.54s1.84-.7 2.54 0L12 8.46l2.06-2.1c.7-.7 1.84-.7 2.54 0s.7 1.84 0 2.54L14.54 11l2.06 2.1c.7.7.7 1.84 0 2.54z"/></svg> 挂断电话</button>
+      <button class="hangup-btn" onclick="hangUpCall()"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.6 13.6c-.34.34-.8.51-1.27.51s-.93-.17-1.27-.51L12 13.5l-2.06 2.1c-.34.34-.8.51-1.27.51s-.93-.17-1.27-.51c-.7-.7-.7-1.84 0-2.54L9.46 11l-2.06-2.1c-.7-.7-.7-1.84 0-2.54s1.84-.7 2.54 0L12 8.46l2.06-2.1c.7-.7 1.84-.7 2.54 0s.7 1.84 0 2.54L14.54 11l2.06 2.1c.7.7 1.84-.7 2.54 0s.7 1.84 0 2.54L14.54 11l2.06 2.1c.7.7.7 1.84 0 2.54z"/></svg> 挂断电话</button>
   </div>
 </div>
 <div id="minimizedCallBar" class="minimized-bar" onclick="restoreCall()"><div class="mini-ripple"></div><span id="miniTimerDisplay">00:00</span><span>返回通话</span></div>
@@ -674,7 +722,89 @@
 let globalAbortController = null; let isFetching = false; let fetchingContactId = null; let isBgFetching = false;
 let inCall = false; let callInitiator = 'user'; let callTimerInterval = null; let callSeconds = 0; let currentCallHistory = []; let pendingIncomingCallData = null; let incomingCallFromId = null; let activeCallContactId = null;
 let userCameraOn = false; let aiCameraOn = false; let callHadVideo = false; let userMicOn = true; let aiMicOn = true;
+let isDictatingMode = false;
+let voiceRecognition = null;
+let finalDictatedText = "";
+let hasDictatedText = false; // 新增：全局追踪当前输入框的内容是否来自于语音听写
 
+// 如果用户手动修改了输入框的内容，就取消“纯语音”的判定
+document.getElementById('callInput').addEventListener('input', function() {
+    if (!isDictatingMode) hasDictatedText = false;
+});
+
+function startVoiceDictation() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert("当前浏览器不支持原生语音识别，请使用 Chrome/Edge/Safari。");
+        return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    voiceRecognition = new SpeechRecognition();
+    voiceRecognition.continuous = true;
+    voiceRecognition.interimResults = true;
+    
+    // 动态获取目标语言，提升语音识别精准度
+    const db = LocalDB.get();
+    const contact = db.contacts.find(c => c.id === activeCallContactId);
+    const targetLang = contact ? contact.targetLang : "中文";
+    let bcp47 = 'zh-CN';
+    if(targetLang.includes('英') || targetLang.toLowerCase().includes('english')) bcp47 = 'en-US';
+    else if(targetLang.includes('日') || targetLang.includes('ja')) bcp47 = 'ja-JP';
+    else if(targetLang.includes('韩') || targetLang.includes('ko')) bcp47 = 'ko-KR';
+    else if(targetLang.includes('法')) bcp47 = 'fr-FR';
+    else if(targetLang.includes('德')) bcp47 = 'de-DE';
+    else if(targetLang.includes('俄')) bcp47 = 'ru-RU';
+    
+    voiceRecognition.lang = bcp47;
+    finalDictatedText = "";
+    
+    voiceRecognition.onstart = function() {
+        isDictatingMode = true;
+        document.getElementById('callScreen').classList.add('is-dictating');
+        document.getElementById('recordOverlay').classList.add('show');
+        document.getElementById('innerMicTrigger').style.display = 'none';
+        document.getElementById('callInput').blur();
+        
+        const leftBtn = document.getElementById('userMicBtn');
+        leftBtn.classList.add('cancel-mode');
+        leftBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+        
+        document.getElementById('callSendBtn').classList.add('pulse-mode');
+    };
+    
+    voiceRecognition.onresult = function(event) {
+        hasDictatedText = true; // 一旦识别出文字，立刻打上“语音来源”的标记
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) finalDictatedText += event.results[i][0].transcript;
+            else interim += event.results[i][0].transcript;
+        }
+        document.getElementById('callInput').value = finalDictatedText + interim;
+    };
+    
+    voiceRecognition.onerror = function(event) { console.error("语音识别异常:", event.error); };
+    voiceRecognition.onend = function() { if (isDictatingMode) exitDictationMode(); };
+    voiceRecognition.start();
+}
+
+function exitDictationMode() {
+    isDictatingMode = false;
+    if (voiceRecognition) { 
+        try { voiceRecognition.stop(); } catch(e) {} 
+        voiceRecognition = null; 
+    }
+    document.getElementById('callScreen').classList.remove('is-dictating');
+    document.getElementById('recordOverlay').classList.remove('show');
+    document.getElementById('innerMicTrigger').style.display = 'flex';
+    
+    const leftBtn = document.getElementById('userMicBtn');
+    leftBtn.classList.remove('cancel-mode');
+    if(userMicOn) {
+        leftBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>';
+    } else {
+        leftBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>';
+    }
+    document.getElementById('callSendBtn').classList.remove('pulse-mode');
+}
 // --- 电话排队管理系统 ---
 let incomingCallQueue = []; 
 let isShowingIncomingCall = false; 
@@ -695,6 +825,12 @@ function processCallQueue() {
 }
 
 function toggleUserMic() {
+    if (isDictatingMode) {
+        exitDictationMode(); // 录音时点击它意味着取消录音
+        document.getElementById('callInput').value = '';
+        hasDictatedText = false; // 【修复】彻底清除语音标识，防止污染下一次键盘输入
+        return;
+    }
     userMicOn = !userMicOn;
     const btn = document.getElementById('userMicBtn');
     if (userMicOn) {
@@ -728,9 +864,35 @@ function toggleUserCamera() {
 const svgSpeaker = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>`;
 const msgInput = document.getElementById('msgInput'); const tabBar = document.getElementById('mainTabBar');
 
-msgInput.addEventListener('focus', () => { tabBar.style.display = 'none'; setTimeout(() => { window.scrollTo(0, 0); document.body.scrollTop = 0; const container = document.getElementById('chatHistoryContainer'); container.scrollTop = container.scrollHeight; }, 100); });
-msgInput.addEventListener('blur', () => { window.scrollTo(0, 0); if(document.getElementById('page-chat').classList.contains('active')) tabBar.style.display = 'flex'; });
-document.getElementById('callInput').addEventListener('focus', () => { setTimeout(() => { window.scrollTo(0, 0); document.body.scrollTop = 0; const container = document.getElementById('callLyricsContainer'); container.scrollTop = container.scrollHeight; }, 100); });
+msgInput.addEventListener('focus', () => { 
+    tabBar.style.display = 'none'; 
+    setTimeout(() => { 
+        const container = document.getElementById('chatHistoryContainer'); 
+        container.scrollTop = container.scrollHeight; 
+        msgInput.scrollIntoView(false); // 强制让输入框靠在可视区域底部
+    }, 300); 
+});
+
+msgInput.addEventListener('blur', () => { 
+    setTimeout(() => { window.scrollTo(0, 0); document.body.scrollTop = 0; }, 100);
+    if(document.getElementById('page-chat').classList.contains('active')) tabBar.style.display = 'flex'; 
+});
+
+document.getElementById('callInput').addEventListener('focus', () => { 
+    setTimeout(() => { 
+        const container = document.getElementById('callLyricsContainer'); 
+        container.scrollTop = container.scrollHeight; 
+        document.getElementById('callInput').scrollIntoView(false);
+    }, 300); 
+});
+
+// iOS 键盘终极防遮挡杀器：根据实际可视窗口动态调整高度
+if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+        document.body.style.height = window.visualViewport.height + 'px';
+        window.scrollTo(0, 0);
+    });
+}
 document.addEventListener('touchmove', function(e) { if (!e.target.closest('.scroll-content') && !e.target.closest('.chat-history') && !e.target.closest('.sheet-scroll') && !e.target.closest('.fc-scroll-area') && !e.target.closest('.input-box') && !e.target.closest('.setting-textarea') && !e.target.closest('.call-lyrics-container') && !e.target.closest('.call-input-box') && !e.target.closest('#changelogContent') && !e.target.closest('#groupMembersList')) e.preventDefault(); }, { passive: false });
 
 let currentWordContextForBind = null; let currentWordMessageId = null; let currentWordInCallIndex = null; 
@@ -1142,7 +1304,8 @@ function openTranscriptModal(msgId) {
                 return `<div style="margin-bottom:4px;"><span class="sent-unit" data-txt="${a.sentence.replace(/"/g, '&quot;')}">${text}</span>${transHtml}</div>`; 
             }).join('');
         } else { let cleanContent = logItem.text.replace(/['"`]/g, ''); lineHtml = `<div style="margin-bottom:4px;"><span class="sent-unit" data-txt="${cleanContent}">${wrapWords(cleanContent)}</span></div>`; }
-        wrapper.innerHTML = `<div class="message ${logItem.type}"><div class="bubble">${lineHtml}</div></div>`; container.appendChild(wrapper);
+        let dictBadge = logItem.isDictated ? `<div style="display:inline-flex; align-items:center; gap:3px; font-size:11px; color:rgba(255,255,255,0.8); background:rgba(0,0,0,0.15); padding:2px 6px; border-radius:6px; float:right; margin-bottom:6px; clear:both;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><path d="M12 2v20M17 5v14M7 5v14M22 10v4M2 10v4"/></svg>语音录入</div><div style="clear:both;"></div>` : '';
+        wrapper.innerHTML = `<div class="message ${logItem.type}"><div class="bubble">${dictBadge}${lineHtml}</div></div>`; container.appendChild(wrapper);
     }); document.getElementById('transcriptModal').classList.add('show');
 }
 function closeTranscriptModal() { document.getElementById('transcriptModal').classList.remove('show'); }
@@ -1153,17 +1316,20 @@ function triggerSystemEvent() {
     if(text && text.trim() !== "") { LocalDB.addMessage(currentContactId, 'sent', text.trim(), null, { isSystemEvent: true }); safeRenderCurrentChat(); }
 }
 
-function renderChat(id) {
-    const c = LocalDB.get().contacts.find(x => x.id === id); const container = document.getElementById('chatHistoryContainer'); container.innerHTML = '';
+function renderChat(id, retainScroll = false) {
+    const c = LocalDB.get().contacts.find(x => x.id === id); const container = document.getElementById('chatHistoryContainer'); 
+    const oldScrollHeight = container.scrollHeight;
+    container.innerHTML = '';
     
-    let limit = parseInt(c.renderLimit) || 40;
+    let stepLimit = parseInt(c.renderLimit) || 40;
+    let limit = stepLimit;
     if (window.tempRenderLimit && window.tempRenderLimit[id]) limit = window.tempRenderLimit[id];
     
     let msgsToRender = c.history;
     if (c.history.length > limit) {
         msgsToRender = c.history.slice(-limit);
         const loadMoreBtn = document.createElement('div');
-        loadMoreBtn.innerHTML = `<button class="mini-btn" style="margin: 10px auto; display: block; background: #f9f9f9; border: 1px solid #eee; color: var(--ios-gray-text);" onclick="window.tempRenderLimit = window.tempRenderLimit || {}; window.tempRenderLimit['${id}'] = ${limit} + 40; renderChat('${id}')">↑ 加载更早记录 (${limit}/${c.history.length})</button>`;
+        loadMoreBtn.innerHTML = `<button class="mini-btn" style="margin: 10px auto; display: block; background: #f9f9f9; border: 1px solid #eee; color: var(--ios-gray-text);" onclick="window.tempRenderLimit = window.tempRenderLimit || {}; window.tempRenderLimit['${id}'] = ${limit + stepLimit}; renderChat('${id}', true)">↑ 加载更早记录 (${limit}/${c.history.length})</button>`;
         container.appendChild(loadMoreBtn);
     }
 
@@ -1264,8 +1430,9 @@ function renderChat(id) {
             if (parsedSent && parsedSent.tokens && parsedSent.tokens.length > 0) {
                 let tokensHtml = rawContent ? parsedSent.tokens.map(t => { let w = t.word; let isCJK = /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/.test(w); let isPunct = /^[.,!?;:'"()\[\]{}。，！？；：“”（）【】]+$/.test(w); return `<span class="word" data-word="${w.replace(/['"]/g, '')}">${w}</span>` + ((isCJK || isPunct) ? '' : ' '); }).join('').trim() : "";
                 const imgMatch = rawContent.match(/\[(?:图片|画像|Image|Picture|写真):\s*(.*?)\]/i);
-                if (imgMatch) lineHtml = `<div class="media-content"><img src="https://via.placeholder.com/300x200?text=IMAGE" class="media-img"><span class="media-tag">IMAGE CONTENT</span><div class="media-transcript"><span class="sent-unit" data-txt="${rawContent.replace(/"/g, '&quot;')}">${tokensHtml}</span>${transHtml}</div></div>`;
-                else {
+                if (imgMatch) {
+                    lineHtml = `<div class="secret-image-box" onclick="if(!this.classList.contains('revealed')) this.classList.add('revealed');"><div class="secret-cover"><div class="secret-btn">👀 点击查看图片</div></div><div class="secret-content"><span class="media-tag" style="margin-bottom:6px; opacity:0.8;">IMAGE DESCRIPTION</span><div class="media-transcript"><span class="sent-unit" data-txt="${rawContent.replace(/"/g, '&quot;')}">${tokensHtml}</span>${transHtml}</div></div></div>`;
+                } else {
                     const voiceMatch = rawContent.match(/\[(?:语音|音声|Voice|Audio|录音):\s*(.*?)\]/i);
                     if (voiceMatch) {
                         let textToRead = voiceMatch[1].replace(/['"]/g, "\\'");
@@ -1281,8 +1448,9 @@ function renderChat(id) {
             } else {
                 let rawTextForDisplay = rawContent ? wrapWords(rawContent.replace(/\[(?:语音|音声|Voice|Audio|录音):\s*(.*?)\]/i, '$1').replace(/\[(?:图片|画像|Image|Picture|写真):\s*(.*?)\]/i, '$1')) : "";
                 const imgMatch = rawContent.match(/\[(?:图片|画像|Image|Picture|写真):\s*(.*?)\]/i);
-                if (imgMatch) lineHtml = `<div class="media-content"><img src="https://via.placeholder.com/300x200?text=IMAGE" class="media-img"><span class="media-tag">IMAGE CONTENT</span><div class="media-transcript"><span class="sent-unit" data-txt="${rawContent.replace(/"/g, '&quot;')}">${rawTextForDisplay}</span>${transHtml}</div></div>`;
-                else {
+                if (imgMatch) {
+                    lineHtml = `<div class="secret-image-box" onclick="if(!this.classList.contains('revealed')) this.classList.add('revealed');"><div class="secret-cover"><div class="secret-btn">👀 点击查看图片</div></div><div class="secret-content"><span class="media-tag" style="margin-bottom:6px; opacity:0.8;">IMAGE DESCRIPTION</span><div class="media-transcript"><span class="sent-unit" data-txt="${rawContent.replace(/"/g, '&quot;')}">${rawTextForDisplay}</span>${transHtml}</div></div></div>`;
+                } else {
                     const voiceMatch = rawContent.match(/\[(?:语音|音声|Voice|Audio|录音):\s*(.*?)\]/i);
                     if (voiceMatch) {
                         let textToRead = voiceMatch[1].replace(/['"]/g, "\\'");
@@ -1308,7 +1476,12 @@ function renderChat(id) {
         wrapper.innerHTML = `${nameTagHtml}<div class="message ${msg.type}"><div class="bubble">${bubbleContent}</div></div><div class="message-actions">${actionsHtml}</div>`; 
         container.appendChild(wrapper);
     });
-    container.scrollTop = container.scrollHeight;
+    
+    if (retainScroll) {
+        container.scrollTop = container.scrollHeight - oldScrollHeight;
+    } else {
+        container.scrollTop = container.scrollHeight;
+    }
 }
 
 function handleSendVoice() { const text = prompt("[模拟语音输入] 请输入你想说的话，AI将识别为语音消息:"); if(text) { document.getElementById('msgInput').value = `[语音: ${text}]`; handleSend(false); } }
@@ -1652,6 +1825,7 @@ function rejectIncomingCall() {
 function startCall(initiator, initialMsgObj) {
     inCall = true; callInitiator = initiator; currentCallHistory = []; callSeconds = 0; 
     callHadVideo = userCameraOn || aiCameraOn;
+    isDictatingMode = false; hasDictatedText = false; // 【修复】初始化时清理语音状态，干干净净开始
     document.getElementById('callTimerDisplay').innerText = "00:00"; 
     document.getElementById('miniTimerDisplay').innerText = "00:00"; 
     document.getElementById('callInput').value = '';
@@ -1680,11 +1854,16 @@ function startCall(initiator, initialMsgObj) {
         }
     }
 }
-function minimizeCall() { document.getElementById('callScreen').classList.remove('show'); document.getElementById('minimizedCallBar').style.display = 'flex'; }
+function minimizeCall() { 
+    if (isDictatingMode) { exitDictationMode(); document.getElementById('callInput').value = ''; hasDictatedText = false; }
+    document.getElementById('callScreen').classList.remove('show'); 
+    document.getElementById('minimizedCallBar').style.display = 'flex'; 
+}
 function restoreCall() { document.getElementById('callScreen').classList.add('show'); document.getElementById('minimizedCallBar').style.display = 'none'; renderCallHistory(); }
 
 async function hangUpCall() {
     if(inCall && !confirm("确定要挂断电话吗？")) return; 
+    if (isDictatingMode) { exitDictationMode(); document.getElementById('callInput').value = ''; hasDictatedText = false; } // 【修复】挂断时立刻掐断麦克风
     inCall = false; clearInterval(callTimerInterval); document.getElementById('callScreen').classList.remove('show'); document.getElementById('minimizedCallBar').style.display = 'none';
     setTimeout(processCallQueue, 800); // 挂断后如果有排队，拉起下一个
     
@@ -1694,7 +1873,7 @@ async function hangUpCall() {
         if (!contact || contact.type === 'group') return; 
 
         // 过滤掉电话里的报错或占位日志
-        const transcriptLog = currentCallHistory.filter(m=>!m.isError).map(m => ({ type: m.type, text: m.content, analysis: m.analysis }));
+        const transcriptLog = currentCallHistory.filter(m=>!m.isError).map(m => ({ type: m.type, text: m.content, analysis: m.analysis, isDictated: m.isDictated }));
         const transcriptObj = { isCallTranscript: true, callType: callHadVideo ? 'video' : 'voice', duration: formatTime(callSeconds), log: transcriptLog };
         const bubbleOwner = callInitiator === 'user' ? 'sent' : 'received';
         const callTypeStr = callHadVideo ? '视频' : '语音';
@@ -1787,6 +1966,11 @@ function renderCallHistory() {
                 return dramaHtml + `<div class="lyric-text"><span class="sent-unit" data-txt="${a.sentence.replace(/"/g, '&quot;')}">${text}</span></div>${transHtml}`;
             }).join('');
         } else contentHtml = `<div class="lyric-text"><span class="sent-unit" data-txt="${cleanContent}">${wrapWords(cleanContent)}</span></div>`;
+        
+        // 核心修补：在实时通话界面也追加原生语音录入的绿色极简角标！
+        let voiceTagHtml = (msg.type === 'sent' && msg.isDictated) ? `<div class="voice-tag" style="justify-content: flex-end; width: 100%;"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg> 原生语音</div>` : "";
+        contentHtml = voiceTagHtml + contentHtml;
+
         let actionHtml = msg.type === 'sent' ? `<button class="lyric-action-btn" onclick="callActionEdit(${idx})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>编辑</button><button class="lyric-action-btn" onclick="callActionDelete(${idx})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>删除</button>` : `<button class="lyric-action-btn" onclick="callActionReroll(${idx})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.5 2v6h-6M2.5 22v-6h6"/><path d="M22 11.5A10 10 0 0 1 3.2 7.2M2 12.5a10 10 0 0 1 18.8 4.2"/></svg>重Roll</button><button class="lyric-action-btn" onclick="callActionDelete(${idx})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>删除</button>`;
         row.innerHTML = contentHtml + `<div class="lyric-actions">${actionHtml}</div>`; container.appendChild(row);
     });
@@ -1832,7 +2016,6 @@ async function sendInCall() {
             if (globalAbortController) {
                 globalAbortController.abort();
             }
-            // 修复点：手动打断后，必须强行亲手把锁全部砸烂！不能指望虚无缥缈的 finally
             isFetching = false;
             fetchingContactId = null;
             globalAbortController = null;
@@ -1843,16 +2026,55 @@ async function sendInCall() {
         }
     }
 
-    const input = document.getElementById('callInput'); let text = input.value.trim(); 
+    if (isDictatingMode) {
+        const overlay = document.getElementById('recordOverlay');
+        const sendBtn = document.getElementById('callSendBtn');
+        
+        // 1. 拦截UI：显示正在处理，锁定发送按钮
+        overlay.innerHTML = `<div class="ios-spinner" style="width:14px;height:14px;margin-right:8px;border-width:2px;border-color:rgba(52,199,89,0.3);border-top-color:var(--ios-green);display:inline-block;vertical-align:middle;"></div> 正在处理末尾语音...`;
+        sendBtn.style.pointerEvents = 'none';
+        sendBtn.style.opacity = '0.5';
+        
+        // 2. 异步等待浏览器语音引擎吐出最后一段结果
+        await new Promise(resolve => {
+            if (voiceRecognition) {
+                // 覆盖原生 onend，劫持它
+                const originalOnEnd = voiceRecognition.onend;
+                voiceRecognition.onend = function(e) {
+                    if (originalOnEnd) {
+                        try { originalOnEnd(e); } catch(err) {}
+                    }
+                    resolve();
+                };
+                // 告诉浏览器停止收音，这会触发最后一次 onresult，最后触发 onend
+                try { voiceRecognition.stop(); } catch(err) { resolve(); }
+            } else {
+                resolve();
+            }
+        });
+        
+        // 3. 恢复UI文案，为下次录音做准备
+        overlay.innerHTML = `<span class="rec-dot">●</span> 正在聆听，讲完点右侧发送...`;
+        sendBtn.style.pointerEvents = 'auto';
+        sendBtn.style.opacity = '1';
+    }
+
+    const input = document.getElementById('callInput'); 
+    let text = input.value.trim(); 
+    
+    // 关键修正：读取并在发送后重置语音来源状态，防止被自动停录打断
+    let isDictatedFlag = hasDictatedText;
+    hasDictatedText = false; 
+    
     if(currentCallHistory.length > 0 && currentCallHistory[currentCallHistory.length-1].isError) currentCallHistory.pop();
     
     let isTimePass = false;
     let lastType = currentCallHistory.length > 0 ? currentCallHistory[currentCallHistory.length - 1].type : null;
     if(!text) { 
         if (lastType === 'received' || lastType === null) isTimePass = true; 
-        else { /* 催更，保持不变 */ }
     } else {
-        currentCallHistory.push({ type: 'sent', content: text }); input.value = '';
+        currentCallHistory.push({ type: 'sent', content: text, isDictated: isDictatedFlag }); 
+        input.value = '';
     }
     
     renderCallHistory(); handleCallSend(isTimePass); 
@@ -1889,6 +2111,7 @@ async function handleCallSend(isTimePass = false) {
 4. 你的设备操作：你可在 \`camera_action\` 输出 "on"/"off"/"keep" 切换摄像头；在 \`mic_action\` 输出 "on"/"off"/"keep" 切换麦克风。
 5. 【跨频道发图/文字铁律】：如果在电话里${uName}要求你去群里说话，或者你想悄悄给${uName}发照片/私聊，可以使用 cross_channel_messages。你可以选择发给${uName}私聊(ID: ${activeCallContactId})，或发到你所在的群聊(${dynamicGroupList})。跨频道气泡格式必须与正常 bubbles 完全一致，动作和台词必须绝对分离！
 6. 发声逻辑：你的 \`bubbles.sentence\` 是直接对着麦克风说出口的台词，因此绝对禁止在里面出现 \`[图片:xxx]\`！有图片必须通过上面第5条跨频道私联发送！如果闭麦了，\`sentence\` 留空。
+7. 【语音识别容错铁律】：如果${uName}的台词开头带有 [语音入录] 标记，说明这是TA通过麦克风实时语音转文字输入的。由于口音或环境音，极可能会包含同音错别字、标点丢失或断句错误。请你必须结合当时的语境，自动推测TA真实的含义，**绝对不可因此出戏**或表现出疑惑！
 请严格输出纯JSON: 
 {
   "action": "speak或hang_up", 
@@ -1934,7 +2157,8 @@ async function handleCallSend(isTimePass = false) {
     currentCallHistory.forEach(m => { 
         if(!m.isError) {
             let speaker = m.type === 'sent' ? uName : contact.name;
-            messages.push({ role: m.type === 'sent' ? 'user' : 'assistant', content: `${speaker}: ${m.content}` }); 
+            let prefix = (m.type === 'sent' && m.isDictated) ? '[语音入录] ' : '';
+            messages.push({ role: m.type === 'sent' ? 'user' : 'assistant', content: `${speaker}: ${prefix}${m.content}` }); 
         }
     });
 
@@ -2440,7 +2664,7 @@ async function handleSend(triggerAI, isReroll = false, isAutoGroupPull = false) 
             return;
         }
         let errMsg = `(通信或格式故障) ${e.message}`;
-        if (e.message.includes("大括号") && rawResText) errMsg = `【JSON解析崩溃】AI返回了以下非标准文本。请点击该气泡下方按钮“智能重组”进行自动修复：\n\n${rawResText}\n\n（系统底层信息：以上内容为程序调试日志，请AI在下次回复时完全忽略，切勿在对话或内心戏中提及此错误。）`;
+        if (e.message.includes("大括号") && rawResText) errMsg = `【JSON解析崩溃】AI返回了以下非标准文本。请点击该气泡下方按钮“智能重组”进行自动修复：\n\n${rawResText}`;
         LocalDB.addMessage(targetContactId, 'received', errMsg, null, { isErrorMsg: true }); 
         if (currentContactId === targetContactId && document.getElementById('page-chat').classList.contains('active')) safeRenderCurrentChat(); else renderContactList();
     } finally {
@@ -3435,12 +3659,12 @@ async function executeMiniMaxTTS(text, btnEl, isAutoCall = false, profileToUse =
         // ==========================================
         // ====== 版本更新公告配置 (每次更新修改这里) ======
         // ==========================================
-        const CURRENT_APP_VERSION = "3.6.6"; // 每次发布新版本，修改这个版本号
+        const CURRENT_APP_VERSION = "3.7.2"; // 每次发布新版本，修改这个版本号
         const UPDATE_CHANGELOG_HTML = `
             1. <b>通话部分更新</b>：现在可以决定打电话还是打视频啦!(不会真开你摄像头!麦克风和摄像头随时开关)<br><br>
             2. <b>对话改进</b>：内心话和动作可以决定开关了(也可以决定语言,默认中文的话就不会那么痛苦了罢...)<br><br>
             3. <b>角色设定小修改</b>：设置里「升级/修复旧版角色数据」推荐点一下,修复旧角色数据库残留问题(试验中,希望角色能更贴...)<br><br>
-            4. <b>发音功能新增</b>：现在语音条也支持生成发音了!(需要设备支持或者外部克隆库，语音档为角色间通用记得多创避免互相影响)电话也增加了自动发音请大人品鉴!(和一些效果小巧思，写了minimax但我没有所以没法测试,但TTS能听个响...)<br><br>
+            4. <b>发音功能新增</b>：增加本地语音转文字,语音条也支持生成发音了!(需要设备支持或者外部克隆库，语音档为角色间通用记得多创避免互相影响)电话也增加了自动发音请大人品鉴!(和一些效果小巧思，写了minimax但我没有所以没法测试,但TTS能听个响...)<br><br>
             5. <b>一些零碎补充</b>：增加置顶，群聊中点击姓名可以@角色，修复删除本轮回复删除太多的问题，增加消息误删/编辑反悔功能，通话的时候停留在当前群聊会唤起群聊自动推进，通话增加重新生成本轮防止以上功能出错不方便删除等<br><br>
             6. <b>顺带一提</b>：虽然我也不觉得会有人倒卖这玩意但这是免费的如果谁收你钱记得去退款...学习加油大家!
         `; // 在这里填写你要对用户说的话，支持 HTML 标签如 <br> 换行，<b> 加粗等。
