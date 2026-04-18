@@ -1,6 +1,6 @@
 <!--
 ====================================================================
-@name 驴的学习小手机 v3.7.5
+@name 驴的学习小手机 v3.7.7
 @author 驴
 @copyright Copyright (c) 2026 [驴]. All rights reserved.
 ====================================================================
@@ -10,7 +10,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>驴的学习小手机 v3.7.5</title>
+<title>驴的学习小手机 v3.7.7</title>
 <style>
   :root {
     --ios-blue: #007AFF; --ios-green: #34C759; --ios-orange: #FF9500; --ios-red: #FF3B30;
@@ -88,6 +88,14 @@
   .media-content { display: flex; flex-direction: column; gap: 4px; }
   .media-tag { font-size: 10px; opacity: 0.7; font-weight: bold; text-transform: uppercase; margin-bottom: 2px; display: block;}
   .media-img { max-width: 100%; border-radius: 8px; margin-bottom: 4px; display: block; border: 1px solid rgba(0,0,0,0.1); }
+  
+  /* 撤回消息样式 (玻璃风) */
+  .system-recall-hint { text-align: center; width: 100%; font-size: 12px; color: #8E8E93; margin: 6px 0; font-weight: 500; cursor: pointer; display: flex; justify-content: center; align-items: center; }
+  .system-recall-hint span { background: rgba(0,0,0,0.05); padding: 4px 12px; border-radius: 12px; transition: 0.2s; display: flex; align-items: center; gap: 4px;}
+  .system-recall-hint span:active { background: rgba(0,0,0,0.1); transform: scale(0.98); }
+  .system-recall-hint svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
+  .msg-reveal-box { display: none; background: rgba(242, 242, 247, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 10px 14px; border-radius: 16px; font-size: 15px; color: #555; border: 1px solid rgba(0,0,0,0.05); text-align: left; }
+  .message.sent .msg-reveal-box { background: rgba(0, 122, 255, 0.1); color: #004499; border: 1px solid rgba(0, 122, 255, 0.2); }
   
   /* 毛玻璃盲盒图片气泡 (单向解锁) */
   .secret-image-box { position: relative; min-width: 220px; background: linear-gradient(135deg, #e9e9eb, #f5f5f5); border-radius: 14px; overflow: hidden; margin-bottom: 4px; transition: all 0.3s ease; border: 1px solid rgba(0,0,0,0.05); }
@@ -559,7 +567,7 @@
     </div>
 </div>
 
-<div class="ios-sheet" id="msgActionSheet"><div class="drag-area-top" onclick="closeMsgActionSheet()"><div class="drag-indicator"></div></div><div class="sheet-scroll"><button class="ios-action-btn" style="margin-bottom:10px; background:var(--ios-blue);" onclick="msgReParse()">理顺并重新拆分此消息</button><button class="ios-action-btn" style="margin-bottom:10px; background:var(--ios-bg); color:#333; border:1px solid #ddd;" onclick="msgQuoteReply()">引用回复 (询问TA)</button><button class="ios-action-btn" style="margin-bottom:10px; background:var(--ios-red);" onclick="msgDeleteSingle()">删除该条消息</button><button class="ios-action-btn" style="margin-bottom:10px; background:var(--ios-red);" onclick="msgDeleteRound()">删除AI本轮回复 (保留我的)</button><button class="ios-action-btn" style="margin-bottom:20px; background:var(--ios-green);" onclick="undoLastAction()">撤销上一次删除/修改</button></div></div>
+<div class="ios-sheet" id="msgActionSheet"><div class="drag-area-top" onclick="closeMsgActionSheet()"><div class="drag-indicator"></div></div><div class="sheet-scroll"><button class="ios-action-btn" style="margin-bottom:10px; background:var(--ios-blue);" onclick="msgReParse()">理顺并重新拆分此消息</button><button class="ios-action-btn" style="margin-bottom:10px; background:var(--ios-bg); color:#333; border:1px solid #ddd;" onclick="msgQuoteReply()">引用回复 (询问TA)</button><button class="ios-action-btn" style="margin-bottom:10px; background:var(--ios-orange);" onclick="msgRecallSingle()">撤回这条消息 (转为撤回状态)</button><button class="ios-action-btn" style="margin-bottom:10px; background:var(--ios-red);" onclick="msgDeleteSingle()">删除该条消息</button><button class="ios-action-btn" style="margin-bottom:10px; background:var(--ios-red);" onclick="msgDeleteRound()">删除AI本轮回复 (保留我的)</button><button class="ios-action-btn" style="margin-bottom:10px; background:var(--ios-green);" onclick="undoLastAction()">撤销上一次删除/修改</button><button class="ios-action-btn" style="margin-bottom:20px; background:var(--ios-green);" onclick="redoLastAction()">恢复上一次撤销 (重做)</button></div></div>
 
 <div class="ios-sheet" id="userProfileSheet"><div class="drag-area-top" onclick="closeUserProfileSheet()"><div class="drag-indicator"></div></div><div class="sheet-scroll"><h2 style="text-align:center; margin-bottom:20px;">个人信息设置</h2><div class="example-box"><span class="setting-label">我的昵称 (User Name)</span><input type="text" id="userProfileName" class="setting-input"><span class="setting-label">我的人设 (告诉AI我是谁)</span><textarea id="userProfilePrompt" class="setting-textarea"></textarea><span class="setting-label" style="color:var(--ios-blue);">我的母语 / 词典解析语言 (全局兜底)</span><input type="text" id="userTransLang" class="setting-input" placeholder="例如：中文 (默认)"><span class="setting-label" style="margin-top:10px;">显示聊天翻译 (关闭即为沉浸模式)</span><select id="settingShowTrans" class="setting-input"><option value="true">开启 (显示气泡翻译)</option><option value="false">关闭 (隐藏翻译, 纯外语沉浸)</option></select></div><button class="ios-action-btn" onclick="saveUserProfile()">保存设定</button></div></div>
 
@@ -927,21 +935,37 @@ document.addEventListener('touchmove', function(e) { if (!e.target.closest('.scr
 let currentWordContextForBind = null; let currentWordMessageId = null; let currentWordInCallIndex = null; 
 
 let globalUndoStack = [];
+let globalRedoStack = [];
 function saveUndoSnapshot(contactId) {
     const db = LocalDB.get(); const contact = db.contacts.find(c => c.id === contactId);
     if (contact) {
         globalUndoStack.push({ contactId: contactId, history: JSON.parse(JSON.stringify(contact.history)), summarizedCount: contact.summarizedCount, msgCount: contact.msgCount });
-        if (globalUndoStack.length > 10) globalUndoStack.shift();
+        if (globalUndoStack.length > 15) globalUndoStack.shift();
+        globalRedoStack = []; // 当产生新操作时，立刻清空重做栈（砍掉失效的时间线）
     }
 }
 function undoLastAction() {
     closeMsgActionSheet(); if (globalUndoStack.length === 0) return alert("没有可撤销的操作");
     const snapshot = globalUndoStack.pop(); const db = LocalDB.get(); const contact = db.contacts.find(c => c.id === snapshot.contactId);
     if (contact) {
+        // 在撤销前，把现在的状态存入重做栈
+        globalRedoStack.push({ contactId: snapshot.contactId, history: JSON.parse(JSON.stringify(contact.history)), summarizedCount: contact.summarizedCount, msgCount: contact.msgCount });
         contact.history = snapshot.history; contact.summarizedCount = snapshot.summarizedCount; contact.msgCount = snapshot.msgCount;
         LocalDB.save(db); updateContactLastMsg(snapshot.contactId); renderContactList();
         if (currentContactId === snapshot.contactId && document.getElementById('page-chat').classList.contains('active')) safeRenderCurrentChat();
         alert("已撤销恢复！");
+    }
+}
+function redoLastAction() {
+    closeMsgActionSheet(); if (globalRedoStack.length === 0) return alert("没有可重做的操作");
+    const snapshot = globalRedoStack.pop(); const db = LocalDB.get(); const contact = db.contacts.find(c => c.id === snapshot.contactId);
+    if (contact) {
+        // 在重做前，把现在的状态存回撤销栈
+        globalUndoStack.push({ contactId: snapshot.contactId, history: JSON.parse(JSON.stringify(contact.history)), summarizedCount: contact.summarizedCount, msgCount: contact.msgCount });
+        contact.history = snapshot.history; contact.summarizedCount = snapshot.summarizedCount; contact.msgCount = snapshot.msgCount;
+        LocalDB.save(db); updateContactLastMsg(snapshot.contactId); renderContactList();
+        if (currentContactId === snapshot.contactId && document.getElementById('page-chat').classList.contains('active')) safeRenderCurrentChat();
+        alert("已重做（恢复了刚才的撤销）！");
     }
 }
 function updateContactLastMsg(id) {
@@ -949,7 +973,9 @@ function updateContactLastMsg(id) {
     const validHistory = c.history.filter(m => !(m.rawObj && m.rawObj.isErrorMsg));
     if (validHistory.length > 0) {
         const lastM = validHistory[validHistory.length - 1];
+        let isRecalled = lastM.isRecalled || (lastM.analysis && lastM.analysis.some(a=>a.is_recalled));
         let txt = lastM.content.replace(/\[(?:图片|画像|Image|Picture|写真):.*?\]/i, '[图片]').replace(/\[(?:语音|音声|Voice|Audio|录音):.*?\]/i, '[语音]');
+        if (isRecalled) txt = '[撤回了一条消息]';
         if (txt.includes('[视频通话记录]')) txt = '[视频通话结束]';
         if (lastM.rawObj && lastM.rawObj.isSystemEvent) txt = '[系统动作]';
         if (c.type === 'group' && lastM.type === 'received' && lastM.speakerName) txt = `${lastM.speakerName}: ${txt}`;
@@ -1502,7 +1528,14 @@ function renderChat(id, retainScroll = false) {
             : `<button class="action-btn" onclick="reRollMsg('${msg.id}')"><svg viewBox="0 0 24 24"><path d="M21.5 2v6h-6M2.5 22v-6h6"/><path d="M22 11.5A10 10 0 0 1 3.2 7.2M2 12.5a10 10 0 0 1 18.8 4.2"/></svg></button><button class="action-btn" onclick="openEditMsgSheet('${msg.id}')"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button><button class="action-btn" onclick="copyMsg('${msg.id}')"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button><button class="action-btn" onclick="openMsgActionSheet('${msg.id}')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>`;
         
         let nameTagHtml = ''; if (msg.speakerName && msg.type === 'received') nameTagHtml = `<div class="msg-speaker-name" style="cursor:pointer;" onclick="insertMention('${msg.speakerName}')">${msg.speakerName}</div>`;
-        wrapper.innerHTML = `${nameTagHtml}<div class="message ${msg.type}"><div class="bubble">${bubbleContent}</div></div><div class="message-actions">${actionsHtml}</div>`; 
+        
+        let isMsgRecalled = msg.isRecalled || (msg.analysis && msg.analysis.some(a=>a.is_recalled));
+        if (isMsgRecalled) {
+            let recallerName = msg.type === 'sent' ? '你' : (msg.speakerName || c.name);
+            wrapper.innerHTML = `${nameTagHtml}<div class="message ${msg.type}" style="flex-direction: column; align-items: ${msg.type==='sent'?'flex-end':'flex-start'};"><div class="system-recall-hint" onclick="this.nextElementSibling.style.display='block'; this.style.display='none';"><span><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> ${recallerName} 撤回了一条消息</span></div><div class="msg-reveal-box">${bubbleContent}</div></div><div class="message-actions">${actionsHtml}</div>`;
+        } else {
+            wrapper.innerHTML = `${nameTagHtml}<div class="message ${msg.type}"><div class="bubble">${bubbleContent}</div></div><div class="message-actions">${actionsHtml}</div>`; 
+        }
         container.appendChild(wrapper);
     });
     
@@ -1517,11 +1550,37 @@ function handleSendVoice() { const text = prompt("[模拟语音输入] 请输入
 function handleSendImage() { const text = prompt("[模拟图片发送] 请输入图片描述或URL，AI将识别为图片消息:"); if(text) { document.getElementById('msgInput').value = `[图片: ${text}]`; handleSend(false); } }
 
 function safeRenderCurrentChat() { if(document.getElementById('page-chat').classList.contains('active') && currentContactId) renderChat(currentContactId); }
-function reRollMsg(id) { saveUndoSnapshot(currentContactId); const db = LocalDB.get(); const contact = db.contacts.find(c => c.id === currentContactId); const idx = contact.history.findIndex(m => m.id === id); if(idx > -1) { contact.history.splice(idx, 1); LocalDB.save(db); updateContactLastMsg(currentContactId); safeRenderCurrentChat(); renderContactList(); handleSend(true, true); } }
+function reRollMsg(id) { 
+    saveUndoSnapshot(currentContactId); 
+    const db = LocalDB.get(); const contact = db.contacts.find(c => c.id === currentContactId); 
+    let targetIdx = contact.history.findIndex(m => m.id === id); 
+    if(targetIdx > -1) { 
+        let startDel = targetIdx; let endDel = targetIdx;
+        while(startDel > 0 && contact.history[startDel - 1].type === 'received') { 
+            if (contact.history[startDel - 1].rawObj && (contact.history[startDel - 1].rawObj.isCallTranscript || contact.history[startDel - 1].rawObj.isSystemEvent)) break; // 绝对拦截：绝不删除通话记录和系统动作
+            if (Math.abs((contact.history[startDel].timestamp || 0) - (contact.history[startDel - 1].timestamp || 0)) > 3000) break;
+            startDel--; 
+        }
+        while(endDel < contact.history.length - 1 && contact.history[endDel + 1].type === 'received') { 
+            if (contact.history[endDel + 1].rawObj && (contact.history[endDel + 1].rawObj.isCallTranscript || contact.history[endDel + 1].rawObj.isSystemEvent)) break; // 绝对拦截
+            if (Math.abs((contact.history[endDel + 1].timestamp || 0) - (contact.history[endDel].timestamp || 0)) > 3000) break;
+            endDel++; 
+        }
+        const count = endDel - startDel + 1;
+        if (contact.summarizedCount > 0 && startDel < contact.summarizedCount) {
+            let affectedCount = Math.min(count, contact.summarizedCount - startDel);
+            contact.summarizedCount -= affectedCount;
+        }
+        contact.history.splice(startDel, count); LocalDB.save(db); 
+        updateContactLastMsg(currentContactId); safeRenderCurrentChat(); renderContactList(); 
+        handleSend(true, true); 
+    } 
+}
 function openMsgActionSheet(id) { targetMsgIdForAction = id; document.getElementById('overlay').classList.add('show'); document.getElementById('msgActionSheet').classList.add('show'); }
 function closeMsgActionSheet() { document.getElementById('msgActionSheet').classList.remove('show'); document.getElementById('overlay').classList.remove('show'); }
 
 function msgQuoteReply() { const db = LocalDB.get(); const contact = db.contacts.find(c => c.id === currentContactId); const msg = contact.history.find(m => m.id === targetMsgIdForAction); if(msg) { const safeContent = msg.content.replace(/[「」]/g, ''); document.getElementById('msgInput').value = `「${safeContent}」 `; } closeMsgActionSheet(); document.getElementById('msgInput').focus(); }
+function msgRecallSingle() { if(confirm("确定将此消息转为'撤回'状态？(双方可见，AI也会察觉你撤回了)")) { saveUndoSnapshot(currentContactId); const db = LocalDB.get(); const contact = db.contacts.find(c => c.id === currentContactId); const msg = contact.history.find(m => m.id === targetMsgIdForAction); if(msg) { msg.isRecalled = true; LocalDB.save(db); updateContactLastMsg(currentContactId); safeRenderCurrentChat(); renderContactList(); } } closeMsgActionSheet(); }
 function msgDeleteSingle() { if(confirm("确定删除此条消息？")) { saveUndoSnapshot(currentContactId); LocalDB.deleteMessage(currentContactId, targetMsgIdForAction); updateContactLastMsg(currentContactId); safeRenderCurrentChat(); renderContactList(); } closeMsgActionSheet(); }
 function deleteMsg(id) { if(confirm("确定删除此条消息？")) { saveUndoSnapshot(currentContactId); LocalDB.deleteMessage(currentContactId, id); updateContactLastMsg(currentContactId); safeRenderCurrentChat(); renderContactList(); } }
 
@@ -1534,10 +1593,12 @@ function msgDeleteRound() {
         if(contact.history[targetIdx].type === 'sent') return alert("你选中了自己发的消息，请选择一条 AI 的消息来撤销它的回复。");
         let startDel = targetIdx; let endDel = targetIdx;
         while(startDel > 0 && contact.history[startDel - 1].type === 'received') { 
+            if (contact.history[startDel - 1].rawObj && (contact.history[startDel - 1].rawObj.isCallTranscript || contact.history[startDel - 1].rawObj.isSystemEvent)) break; // 绝对拦截
             if (Math.abs((contact.history[startDel].timestamp || 0) - (contact.history[startDel - 1].timestamp || 0)) > 3000) break;
             startDel--; 
         }
         while(endDel < contact.history.length - 1 && contact.history[endDel + 1].type === 'received') { 
+            if (contact.history[endDel + 1].rawObj && (contact.history[endDel + 1].rawObj.isCallTranscript || contact.history[endDel + 1].rawObj.isSystemEvent)) break; // 绝对拦截
             if (Math.abs((contact.history[endDel + 1].timestamp || 0) - (contact.history[endDel].timestamp || 0)) > 3000) break;
             endDel++; 
         }
@@ -1916,11 +1977,16 @@ async function hangUpCall() {
         const api = freshDb.settings.apiProfiles[freshDb.settings.currentProfileIndex]; 
         const globalTransLang = freshDb.settings.translationLang || "中文";
         const bubbleTransLang = (freshContact.transLang || "").trim() ? freshContact.transLang.trim() : globalTransLang;
+        const targetLang = freshContact.targetLang || "外语";
+        const jsonActionZh = "客观动作描写，强制用中文，禁止加标签";
+        const jsonActionTarget = `客观动作描写，强制用${targetLang}，禁止加标签`;
+        const jsonThoughtZh = "内心戏与躯体感受，强制用中文，禁止加标签";
+        const jsonThoughtTarget = `内心戏与躯体感受，强制用${targetLang}，禁止加标签`;
         const uName = freshDb.settings.userName || "我";
         const transcriptText = transcriptLog.map(l => `${l.type==='sent'? uName :freshContact.name}: ${l.text}`).join('\n');
         
         try {
-            const prompt = `【系统指令】刚刚你们的视频通话结束了（时长: ${formatTime(callSeconds)}）。通话详情：\n${transcriptText}\n\n请你根据此通话详情及历史记录，在挂断后立刻主动发消息追问/质问/撒娇/冷战（恢复正常网聊风格）。\n【强制多气泡连发】你**必须且至少**将回复拆分成 3 到 5 条极其短小的连续消息（气泡数组）！\n【情绪递进法则】如果你发现${uName}是秒挂电话或多次主动挂断，必须表现出层层递进的真实情绪！\n必须且只能输出纯JSON对象。格式严格按照如下要求分离动作和台词：\n{\n  "bubbles": [\n    {"action_target":"外语动作","inner_thought_target":"外语内心戏","sentence":"直接说出口的短消息1(若发图务必独占气泡用[图片:描述])","action_zh":"中文动作","inner_thought_zh":"中文内心","translation":"[${bubbleTransLang}]翻译"}\n  ]\n}`;
+            const prompt = `【系统指令】刚刚你们的视频通话结束了（时长: ${formatTime(callSeconds)}）。通话详情：\n${transcriptText}\n\n请你根据此通话详情及历史记录，在挂断后立刻主动发消息追问/质问/撒娇/冷战（恢复正常网聊风格）。\n【强制多气泡连发】你**必须且至少**将回复拆分成 3 到 5 条极其短小的连续消息（气泡数组）！\n【情绪递进法则】如果你发现${uName}是秒挂电话或多次主动挂断，必须表现出层层递进的真实情绪！\n必须且只能输出纯JSON对象。格式严格按照如下要求分离动作和台词：\n{\n  "bubbles": [\n    {"is_recalled": false, "action_target":"${jsonActionTarget}","inner_thought_target":"${jsonThoughtTarget}","sentence":"直接说出口的短消息1(若发图务必独占气泡用[图片:描述])","action_zh":"${jsonActionZh}","inner_thought_zh":"${jsonThoughtZh}","translation":"[${bubbleTransLang}]翻译"}\n  ]\n}\n*注：如果想假装发错消息然后秒撤回，可以把 is_recalled 设为 true。`;
             const messages = [{ role: "system", content: freshContact.prompt }];
             
             getHistoryByTurns(freshContact.history, 8).forEach(m => { 
@@ -2313,6 +2379,13 @@ async function handleSend(triggerAI, isReroll = false, isAutoGroupPull = false) 
     }
     
     const db = LocalDB.get(); const contact = db.contacts.find(c => c.id === currentContactId);
+    
+    // 自动清理紧接着的报错气泡
+    if (contact.history.length > 0 && contact.history[contact.history.length - 1].rawObj && contact.history[contact.history.length - 1].rawObj.isErrorMsg) {
+        contact.history.pop();
+        LocalDB.save(db);
+    }
+    
     const validHistory = contact.history.filter(m => !(m.rawObj && m.rawObj.isErrorMsg));
     let lastMsgType = validHistory.length > 0 ? validHistory[validHistory.length - 1].type : null;
 
@@ -2357,6 +2430,15 @@ async function handleSend(triggerAI, isReroll = false, isAutoGroupPull = false) 
     const now = new Date(); const timeStr = now.toLocaleString('zh-CN', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
     const limit = parseInt(freshContact.historyLimit) || 10; 
     const historySlice = getHistoryByTurns(freshContact.history, limit);
+    
+    let justHungUpPrompt = "";
+    if (historySlice.length > 0) {
+        const lastMsg = historySlice[historySlice.length - 1];
+        if (lastMsg.rawObj && lastMsg.rawObj.isCallTranscript) {
+            const callTypeStr = lastMsg.rawObj.callType === 'video' ? '视频' : '语音';
+            justHungUpPrompt = `\n【！！！特殊场景指令：电话刚挂断！！！】刚才你们的${callTypeStr}通话刚刚结束（时长: ${lastMsg.rawObj.duration}）。请你根据通话记录，立刻主动发消息追问/质问/撒娇/冷战（恢复正常网聊风格）。如果你发现用户是秒挂电话或多次主动挂断，必须表现出强烈的情绪！千万不要无视刚刚结束的通话！`;
+        }
+    }
 
     const uName = freshDb.settings.userName || "我";
     const otherSingles = freshDb.contacts.filter(c => c.type === 'single' && c.id !== targetContactId);
@@ -2420,7 +2502,7 @@ async function handleSend(triggerAI, isReroll = false, isAutoGroupPull = false) 
         formatInstruction = `\n【返回格式要求】必须输出纯JSON：
 {
   "group_messages": [
-    {"speaker_id": "成员对应的ID字符串", "bubbles": [{"action_target": "${jsonActionTarget}", "inner_thought_target": "${jsonThoughtTarget}", "sentence": "${jsonSentence}", "action_zh": "${jsonActionZh}", "inner_thought_zh": "${jsonThoughtZh}", "translation": "翻译"}]}
+    {"speaker_id": "成员对应的ID字符串", "bubbles": [{"is_recalled": false, "action_target": "${jsonActionTarget}", "inner_thought_target": "${jsonThoughtTarget}", "sentence": "${jsonSentence}", "action_zh": "${jsonActionZh}", "inner_thought_zh": "${jsonThoughtZh}", "translation": "翻译"}]}
   ],
   "system_event": "可选的系统级操作，用于模拟具体UI功能",
   "background_interruptions": [
@@ -2429,12 +2511,12 @@ async function handleSend(triggerAI, isReroll = false, isAutoGroupPull = false) 
       "character_id": "后台角色的ID",
       "action_type": "call" 或 "message",
       "call_type": "voice 或 video(发起通话时需填)",
-      "accepted_bubbles": [{"action_target":"${jsonActionTarget}","inner_thought_target":"${jsonThoughtTarget}","sentence":"接通后说的话(若发图片务必独占气泡用[图片:描述])","action_zh":"${jsonActionZh}","inner_thought_zh":"${jsonThoughtZh}","translation":"翻译"}],
-      "rejected_bubbles": [{"action_target":"${jsonActionTarget}","inner_thought_target":"${jsonThoughtTarget}","sentence":"被拒接后发出的反应/抱怨","action_zh":"${jsonActionZh}","inner_thought_zh":"${jsonThoughtZh}","translation":"翻译"}],
+      "accepted_bubbles": [{"is_recalled": false, "action_target":"${jsonActionTarget}","inner_thought_target":"${jsonThoughtTarget}","sentence":"接通后说的话(若发图片务必独占气泡用[图片:描述])","action_zh":"${jsonActionZh}","inner_thought_zh":"${jsonThoughtZh}","translation":"翻译"}],
+      "rejected_bubbles": [{"is_recalled": false, "action_target":"${jsonActionTarget}","inner_thought_target":"${jsonThoughtTarget}","sentence":"被拒接后发出的反应/抱怨","action_zh":"${jsonActionZh}","inner_thought_zh":"${jsonThoughtZh}","translation":"翻译"}],
       "rejected_target": "private 或 你所在的某群ID(如果被拒接，你想发在哪里抱怨)"
     }
   ]
-}` + dramaConstraint;
+}\n*注：若想表现发错话然后秒撤回，可以将对应气泡的 is_recalled 设为 true。` + dramaConstraint;
     } else {
         const groups = freshDb.contacts.filter(g => g.type === 'group' && g.members.includes(freshContact.id));
         if (groups.length > 0) {
@@ -2452,7 +2534,7 @@ async function handleSend(triggerAI, isReroll = false, isAutoGroupPull = false) 
 
         if (isOffline) {
             modePrompt = `\n【线下现实沉浸小说模式（最高优先级）】\n当前处于线下现实面对面场景。**绝无手机，绝无网聊**！刚才${uName}的输入是${uName}当着你的面开口说的！` + offlineScenario;
-            formatInstruction = `\n【返回格式】纯JSON: {"bubbles": [{"action_target": "${jsonActionTarget}", "inner_thought_target": "${jsonThoughtTarget}", "sentence": "用「」包裹的台词", "action_zh": "${jsonActionZh}", "inner_thought_zh": "${jsonThoughtZh}", "translation": "翻译"}]}` + dramaConstraint + `\n【线下小说排版与极端字数特令（生死攸关）】：
+            formatInstruction = `\n【返回格式】纯JSON: {"bubbles": [{"is_recalled": false, "action_target": "${jsonActionTarget}", "inner_thought_target": "${jsonThoughtTarget}", "sentence": "用「」包裹的台词", "action_zh": "${jsonActionZh}", "inner_thought_zh": "${jsonThoughtZh}", "translation": "翻译"}]}` + dramaConstraint + `\n【线下小说排版与极端字数特令（生死攸关）】：
 1. 你的总体输出规模必须严格控制在 **【${wordCount}】** 的范围内！
 2. **【小说的节拍感】为了写出连贯的优质长篇小说，你必须将这几千字的剧情拆分成 5 到 15 个连续的“剧情节拍”！** 也就是说，你的 \`bubbles\` 数组里必须生成 5 到 15 个对象！
 3. 在**每一个**剧情节拍（bubble元素）里，你都要像顶级言情小说家一样：在 action 里描写环境光影与肢体拉扯，在 inner_thought 里描写深层心理挣扎，最后在 sentence 里写出一句当面说出口的短台词（**必须用「」包裹**，如果不说话就写「……」）。
@@ -2467,14 +2549,14 @@ async function handleSend(triggerAI, isReroll = false, isAutoGroupPull = false) 
             formatInstruction = `\n【回复格式要求】纯JSON结构！：
 {
   "bubbles": [
-    {"action_target": "${jsonActionTarget}", "inner_thought_target": "${jsonThoughtTarget}", "sentence": "${jsonSentence}", "action_zh": "${jsonActionZh}", "inner_thought_zh": "${jsonThoughtZh}", "translation": "翻译"}
+    {"is_recalled": false, "action_target": "${jsonActionTarget}", "inner_thought_target": "${jsonThoughtTarget}", "sentence": "${jsonSentence}", "action_zh": "${jsonActionZh}", "inner_thought_zh": "${jsonThoughtZh}", "translation": "翻译"}
   ],
   "system_event": "可选的系统级操作，用于模拟具体UI功能",
   "initiate_call": {
     "wants_to_call": true, 
     "call_type": "voice 或 video", 
-    "accepted_bubbles": [{"action_target":"${jsonActionTarget}","inner_thought_target":"${jsonThoughtTarget}","sentence":"第一句话(可多气泡)","action_zh":"${jsonActionZh}","inner_thought_zh":"${jsonThoughtZh}","translation":"翻译"}], 
-    "rejected_bubbles": [{"action_target":"${jsonActionTarget}","inner_thought_target":"${jsonThoughtTarget}","sentence":"被拒接时的反应","action_zh":"${jsonActionZh}","inner_thought_zh":"${jsonThoughtZh}","translation":"翻译"}],
+    "accepted_bubbles": [{"is_recalled": false, "action_target":"${jsonActionTarget}","inner_thought_target":"${jsonThoughtTarget}","sentence":"第一句话(可多气泡)","action_zh":"${jsonActionZh}","inner_thought_zh":"${jsonThoughtZh}","translation":"翻译"}], 
+    "rejected_bubbles": [{"is_recalled": false, "action_target":"${jsonActionTarget}","inner_thought_target":"${jsonThoughtTarget}","sentence":"被拒接时的反应","action_zh":"${jsonActionZh}","inner_thought_zh":"${jsonThoughtZh}","translation":"翻译"}],
     "rejected_target": "private 或 你所在的某群ID(被拒接后发在哪抱怨)"
   },
   "background_interruptions": [
@@ -2483,12 +2565,12 @@ async function handleSend(triggerAI, isReroll = false, isAutoGroupPull = false) 
       "character_id": "后台角色的ID",
       "action_type": "call" 或 "message",
       "call_type": "voice 或 video",
-      "accepted_bubbles": [{"action_target":"${jsonActionTarget}","inner_thought_target":"${jsonThoughtTarget}","sentence":"发后台消息或接通电话的话","action_zh":"${jsonActionZh}","inner_thought_zh":"${jsonThoughtZh}","translation":"翻译"}],
-      "rejected_bubbles": [{"action_target":"${jsonActionTarget}","inner_thought_target":"${jsonThoughtTarget}","sentence":"被拒接时的反应","action_zh":"${jsonActionZh}","inner_thought_zh":"${jsonThoughtZh}","translation":"翻译"}],
+      "accepted_bubbles": [{"is_recalled": false, "action_target":"${jsonActionTarget}","inner_thought_target":"${jsonThoughtTarget}","sentence":"发后台消息或接通电话的话","action_zh":"${jsonActionZh}","inner_thought_zh":"${jsonThoughtZh}","translation":"翻译"}],
+      "rejected_bubbles": [{"is_recalled": false, "action_target":"${jsonActionTarget}","inner_thought_target":"${jsonThoughtTarget}","sentence":"被拒接时的反应","action_zh":"${jsonActionZh}","inner_thought_zh":"${jsonThoughtZh}","translation":"翻译"}],
       "rejected_target": "private 或 某群ID"
     }
   ]
-}` + dramaConstraint;
+}\n*注：若想表现发错话然后秒撤回，可以将对应气泡的 is_recalled 设为 true。` + dramaConstraint;
         }
     }
     
@@ -2502,12 +2584,14 @@ async function handleSend(triggerAI, isReroll = false, isAutoGroupPull = false) 
         fullSystem += realityFilter; 
         fullSystem += globalDirectorPrompt;
     }
-    fullSystem += modePrompt + transRule + `\n【语言】用 [${freshContact.targetLang || '英语'}] 回复。\n` + formatInstruction;
+    fullSystem += modePrompt + transRule + `\n【语言】用 [${freshContact.targetLang || '英语'}] 回复。\n` + formatInstruction + justHungUpPrompt;
 
     const messages = [{ role: "system", content: fullSystem }];
     historySlice.forEach(m => {
         let ts = new Date(m.timestamp || Date.now());
         let timeStr = `${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}:${String(ts.getSeconds()).padStart(2,'0')}`;
+        
+        let isRecalled = m.isRecalled || (m.analysis && m.analysis.some(a=>a.is_recalled));
         
         if (m.rawObj && m.rawObj.isCallTranscript) {
             let transcript = m.rawObj.log.map(l => `[${timeStr}] ${l.type==='sent'? uName :(freshContact.type==='group'?l.speakerName:freshContact.name)}: ${l.text}`).join('\n');
@@ -2516,7 +2600,11 @@ async function handleSend(triggerAI, isReroll = false, isAutoGroupPull = false) 
             messages.push({ role: 'user', content: `[${timeStr}] 【系统客观事实发生】：\n${m.content}` });
         } else {
             let speaker = m.type === 'sent' ? uName : (m.speakerName || freshContact.name);
-            messages.push({ role: m.type === 'sent' ? 'user' : 'assistant', content: `[${timeStr}] ${speaker}: ${m.content}` });
+            if (isRecalled) {
+                messages.push({ role: m.type === 'sent' ? 'user' : 'assistant', content: `[${timeStr}] 【系统提示：${speaker} 撤回了一条消息。利用系统漏洞拦截到的原文为："${m.content}"】` });
+            } else {
+                messages.push({ role: m.type === 'sent' ? 'user' : 'assistant', content: `[${timeStr}] ${speaker}: ${m.content}` });
+            }
         }
     });
     
@@ -2600,7 +2688,12 @@ async function handleSend(triggerAI, isReroll = false, isAutoGroupPull = false) 
             if(parsed.bubbles && parsed.bubbles.length > 0) {
                 for(let i=0; i<parsed.bubbles.length; i++) {
                     const sentObj = parsed.bubbles[i]; 
-                    if(sentObj.sentence) LocalDB.addMessage(targetContactId, 'received', sentObj.sentence, [sentObj]); 
+                    if(sentObj.sentence) {
+                        LocalDB.addMessage(targetContactId, 'received', sentObj.sentence, [sentObj]); 
+                        if (currentContactId === targetContactId && document.getElementById('page-chat').classList.contains('active')) safeRenderCurrentChat(); else renderContactList();
+                        // 停顿2秒，等前面的台词说完再弹来电界面
+                        await new Promise(r => setTimeout(r, 2000));
+                    }
                 }
             }
             if(!inCall && !document.getElementById('incomingCallModal').classList.contains('show') && incomingCallQueue.length === 0) {
@@ -2654,7 +2747,7 @@ async function handleSend(triggerAI, isReroll = false, isAutoGroupPull = false) 
                         LocalDB.addMessage(targetContactId, 'received', fullText, gm.bubbles, null, sName);
                         LocalDB.updateVocabCache(gm.bubbles, freshContact.targetLang);
                         if (currentContactId === targetContactId && document.getElementById('page-chat').classList.contains('active')) safeRenderCurrentChat(); else renderContactList();
-                        if(i < parsed.group_messages.length - 1) await new Promise(r => setTimeout(r, 1200)); 
+                        if(i < parsed.group_messages.length - 1) await new Promise(r => setTimeout(r, 2500)); 
                     }
                 }
             }
@@ -2677,7 +2770,7 @@ async function handleSend(triggerAI, isReroll = false, isAutoGroupPull = false) 
                     const sentObj = parsed.bubbles[i]; 
                     if(sentObj.sentence) LocalDB.addMessage(targetContactId, 'received', sentObj.sentence, [sentObj]); 
                     if (currentContactId === targetContactId && document.getElementById('page-chat').classList.contains('active')) safeRenderCurrentChat(); else renderContactList();
-                    if(i < parsed.bubbles.length - 1) await new Promise(r => setTimeout(r, 800)); 
+                    if(i < parsed.bubbles.length - 1) await new Promise(r => setTimeout(r, 2000)); 
                 }
             } else {
                 let fullText = parsed.bubbles.map(b => b.sentence).join('\n');
@@ -3691,6 +3784,16 @@ async function executeMiniMaxTTS(text, btnEl, isAutoCall = false, profileToUse =
         
         // 以数组形式管理历史版本，最上面的为最新版本
         const CHANGELOG_DATA = [
+            {
+                version: "3.7.7",
+                date: "2026-04-18",
+                content: `
+                    1. <b>新增撤回功能</b>：现在可以选择撤回消息啦。<br>
+                    2. <b>撤销改良</b>：增加复原功能,防止撤销过多。<br>
+                    3. <b>改进重新拉取功能</b>：聊天界面重新拉取修复为无论点击哪个都是整段回复重新拉取,而不是只针对当前语句了（感觉没有什么使用场景）。<br>
+                    4. <b>一些零碎补充</b>：优化了电话打来的时机，修复了通话结束后不按照目标语言回复的错误。
+                `
+            },
             {
                 version: "3.7.4",
                 date: "2026-04-14",
